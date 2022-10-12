@@ -23,7 +23,6 @@ async def download_tidal(bot, update):
             link = None
 
         if link:
-            user_settings.set_var(update.chat.id, "ON_TASK", True)
             provider = await check_link(link)
             if provider:
                 err, err_msg = await checkLogins(provider)
@@ -33,7 +32,7 @@ async def download_tidal(bot, update):
                         text=err_msg,
                         reply_to_message_id=update.id
                     )
-
+            
             LOGGER.info(f"Download Initiated By - {update.from_user.first_name}")
             msg = await bot.send_message(
                 chat_id=update.chat.id,
@@ -46,6 +45,7 @@ async def download_tidal(bot, update):
             else:
                 u_name = f'<a href="tg://user?id={update.from_user.id}">{update.from_user.first_name}</a>'
 
+            user_settings.set_var(update.chat.id, "ON_TASK", True)
             if provider == "tidal":
                 await startTidal(link, bot, update.chat.id, reply_to_id, update.from_user.id, u_name)
 

@@ -30,10 +30,8 @@ class Settings(aigpy.model.ModelBase):
     showProgress = False
     showTrackInfo = True
     saveAlbumInfo = False
-
     downloadPath = "./bot/DOWNLOADS/"
     audioQuality = AudioQuality.Master
-    videoQuality = VideoQuality.P360
     usePlaylistFolder = True
     albumFolderFormat = R"{ArtistName}/{Flag} {AlbumTitle} [{AlbumID}] [{AlbumYear}]"
     trackFileFormat = R"{TrackNumber} - {ArtistName} - {TrackTitle}{ExplicitFlag}"

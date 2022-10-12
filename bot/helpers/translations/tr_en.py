@@ -8,6 +8,7 @@ class EN(object):
 #----------------
     WELCOME_MSG = "Hello {} Sir"
     START_DOWNLOAD = "Starting to download..........."
+    ANTI_SPAM_WAIT = "Wait for the current task to complete!"
 
 
 
@@ -16,12 +17,12 @@ class EN(object):
 # AUTHENTICATIONS
 #
 #----------------
-    CHAT_AUTH_SUCCESS = "Successfully authed {} <code>{}</code>"
+    CHAT_AUTH_SUCCESS = "Successfully authed {0} <code>{1}</code>"
     ADD_ADMIN_SUCCESS = "Successfully added {} as an admin"
     NO_ID_TO_AUTH = "No ID provided to add!"
     # TIDAL
     TIDAL_NOT_AUTH = "No Tidal Logins Given."
-    TIDAL_AUTH_NEXT_STEP = "Go to {} within the next {} to complete tidal authentication."
+    TIDAL_AUTH_NEXT_STEP = "Go to {0} within the next {1} to complete tidal authentication."
     TIDAL_AUTH_SUCCESS = "Tidal authentication successful.\n\nIt is now valid for {}"
     TIDAL_ALREADY_AUTH = "Your authentication is already done.\nIts is valid for {}"
 
@@ -52,12 +53,32 @@ class EN(object):
 #
 #----------------
     INIT_SETTINGS_MENU = "<b>Welcome to Bot Settings Menu.</b>\n\nChoose the option to open its settings."
-    WARN_REMOVE_AUTH = "<b>Are you sure you want to remove Tidal auth?</b>"
+    WARN_REMOVE_AUTH = "<b>Are you sure you want to remove {} auth?</b>"
+    RM_AUTH_SUCCESSFULL = "Successfully removed {} auth details."
+    QUALITY_SET_PANEL = "<b>Choose the required quality for {0}\n\nCurrent Quality :</b> <code>{1}</code>"
+    COMMON_AUTH_PANEL = "<b>Configure {0} Authentication\n\nAuth Status : </b>{1}"
     #
     # TIDAL PANEL
     #
-    TIDAL_SETTINGS_PANEL = "<b>Configure Tidal Settings Here</b>"
-    TIDAL_AUTH_PANEL = "<b>Configure Tidal Authentication\n\nAuth Status : </b>{}"
+    TIDAL_SETTINGS_PANEL = """
+<b>Configure Tidal Settings Here</b>
+
+<b><u>CURRENT SETTINGS</u></b>
+
+<b>Quality : </b><code>{0}</code>
+<b>API : </b><code>{1}</code>
+<b>Auth Status : </b><code>{2}</code>
+"""
+    TIDAL_SELECT_API_KEY = """
+<b><u>API KEY SETTING PANEL</u></b>
+Current API Platform : <code>{0}</code>
+Available Formats : <code>{1}</code>
+API Key Valid : <code>{2}</code>
+<b><u>API PLATFORM INFO</u></b>
+{3}
+<b>RELOGIN NEEDED AFTER CHANGING API PLATFORM</b>
+"""
+    
 
 
 
@@ -74,6 +95,7 @@ class EN(object):
     DEEZER_BUTTON = "DEEZER SETTINGS"
     SOUNDCLOUD_BUTTON = "SOUNDCLOUD SETTINGS"
     CLOSE_BUTTON = "CLOSE"
+    API_BUTTON = "API"
     # COMMON BUTTONS
     QUALITY_BUTTON = "QUALITY"
     AUTH_BUTTON = "AUTH"
@@ -81,3 +103,9 @@ class EN(object):
     ADD_AUTH_BUTTON = "ADD AUTH"
     YES_BUTTON = "YES"
     NO_BUTTON = "NO"
+    # TIDAL QUALITY
+    MASTER_QUALITY = "Master - FLAC"
+    HIFI_QUALITY = "HiFi"
+    HIGH_QUALITY = "High"
+    NORMAL_QUALITY = "Normal"
+

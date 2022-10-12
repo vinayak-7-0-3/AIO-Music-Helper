@@ -3,7 +3,7 @@ import aigpy
 from bot import LOGGER
 from bot.helpers.translations import lang
 from bot.helpers.database.postgres_impl import set_db
-from bot.helpers.buttons.settings_buttons import tidal_auth_set
+from bot.helpers.buttons.settings_buttons import common_auth_set
 
 import bot.helpers.tidal_func.apikey as apiKey
 
@@ -60,7 +60,7 @@ async def loginByWeb(bot, msg, c_id):
                 text=lang.select.TIDAL_AUTH_SUCCESS.format(
                     __displayTime__(int(TIDAL_API.key.expiresIn))),
                 disable_web_page_preview=True,
-                reply_markup=tidal_auth_set()
+                reply_markup=common_auth_set("tidal")
             )
 
             TIDAL_TOKEN.userid = TIDAL_API.key.userId
@@ -195,7 +195,7 @@ async def checkAPITidal():
         index = TIDAL_SETTINGS.apiKeyIndex
         TIDAL_API.apiKey = apiKey.getItem(index)
 
-async def getapiInfo():
+async def getapiInfoTidal():
     i = 0
     platform = []
     validity = []

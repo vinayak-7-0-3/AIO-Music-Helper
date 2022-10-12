@@ -151,5 +151,5 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 *.session
-tidal-dl.token.json
-TidalDLBot.session-journal
+*.token.json
+*.session-journal

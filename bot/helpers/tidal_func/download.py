@@ -143,7 +143,7 @@ def downloadAlbumInfo(album, tracks):
 async def downloadTrack(track: Track, album=None, playlist=None, userProgress=None, partSize=1048576, \
     bot=None, c_id=None, r_id=None, u_id=None, u_name=None):
     try:
-        quality = user_settings.get_var(u_id, "QUALITY")
+        quality, _ = set_db.get_variable("TIDAL_QUALITY")
         if quality:
             quality = TIDAL_SETTINGS.getAudioQuality(quality)
         else:
@@ -151,9 +151,6 @@ async def downloadTrack(track: Track, album=None, playlist=None, userProgress=No
 
         stream = TIDAL_API.getStreamUrl(track.id, quality)
         path = getTrackPath(track, stream, album, playlist)
-
-        # download
-        #logging.info("[DL Track] name=" + aigpy.path.getFileName(path) + "\nurl=" + stream.url)
 
         tool = aigpy.download.DownloadTool(path + '.part', [stream.url])
         tool.setUserProgress(userProgress)

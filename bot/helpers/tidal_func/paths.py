@@ -48,7 +48,7 @@ def getAlbumPath(album):
 
     # album folder pre: [ME]
     flag = TIDAL_API.getFlag(album, Type.Album, True, "")
-    if SETTINGS.audioQuality != AudioQuality.Master:
+    if TIDAL_SETTINGS.audioQuality != AudioQuality.Master:
         flag = flag.replace("M", "")
     if flag != "":
         flag = "[" + flag + "] "
@@ -58,9 +58,9 @@ def getAlbumPath(album):
     year = __getYear__(album.releaseDate)
 
     # retpath
-    retpath = SETTINGS.albumFolderFormat
+    retpath = TIDAL_SETTINGS.albumFolderFormat
     if retpath is None or len(retpath) <= 0:
-        retpath = SETTINGS.getDefaultAlbumFolderFormat()
+        retpath = TIDAL_SETTINGS.getDefaultAlbumFolderFormat()
     retpath = retpath.replace(R"{ArtistName}", artistName)
     retpath = retpath.replace(R"{AlbumArtistName}", albumArtistName)
     retpath = retpath.replace(R"{Flag}", flag)
@@ -77,13 +77,13 @@ def getAlbumPath(album):
     retpath = retpath.replace(R"{RecordType}", album.type)
     retpath = retpath.replace(R"{None}", "")
     retpath = retpath.strip()
-    return f"{SETTINGS.downloadPath}/{retpath}"
+    return f"{TIDAL_SETTINGS.downloadPath}/{retpath}"
 
 
 def getPlaylistPath(playlist):
     # name
     name = __fixPath__(playlist.title)
-    return f"{SETTINGS.downloadPath}/Playlist/{name}"
+    return f"{TIDAL_SETTINGS.downloadPath}/Playlist/{name}"
 
 
 def getTrackPath(track, stream, album=None, playlist=None):
@@ -94,7 +94,7 @@ def getTrackPath(track, stream, album=None, playlist=None):
         if album.numberOfVolumes > 1:
             base += f'/CD{str(track.volumeNumber)}'
 
-    if playlist is not None and SETTINGS.usePlaylistFolder:
+    if playlist is not None and TIDAL_SETTINGS.usePlaylistFolder:
         base = getPlaylistPath(playlist)
         number = str(track.trackNumberOnPlaylist).rjust(2, '0')
 
@@ -117,9 +117,9 @@ def getTrackPath(track, stream, album=None, playlist=None):
     # extension
     extension = __getExtension__(stream)
 
-    retpath = SETTINGS.trackFileFormat
+    retpath = TIDAL_SETTINGS.trackFileFormat
     if retpath is None or len(retpath) <= 0:
-        retpath = SETTINGS.getDefaultTrackFileFormat()
+        retpath = TIDAL_SETTINGS.getDefaultTrackFileFormat()
     retpath = retpath.replace(R"{TrackNumber}", number)
     retpath = retpath.replace(R"{ArtistName}", artist)
     retpath = retpath.replace(R"{ArtistsName}", artists)
@@ -136,7 +136,7 @@ def getTrackPath(track, stream, album=None, playlist=None):
 
 
 def getVideoPath(video, album=None, playlist=None):
-    base = SETTINGS.downloadPath + '/Video/'
+    base = TIDAL_SETTINGS.downloadPath + '/Video/'
     if album is not None and album.title is not None:
         base = getAlbumPath(album)
     elif playlist is not None:
@@ -157,9 +157,9 @@ def getVideoPath(video, album=None, playlist=None):
     year = __getYear__(video.releaseDate)
     extension = ".mp4"
 
-    retpath = SETTINGS.videoFileFormat
+    retpath = TIDAL_SETTINGS.videoFileFormat
     if retpath is None or len(retpath) <= 0:
-        retpath = SETTINGS.getDefaultVideoFileFormat()
+        retpath = TIDAL_SETTINGS.getDefaultVideoFileFormat()
     retpath = retpath.replace(R"{VideoNumber}", number)
     retpath = retpath.replace(R"{ArtistName}", artist)
     retpath = retpath.replace(R"{ArtistsName}", artists)

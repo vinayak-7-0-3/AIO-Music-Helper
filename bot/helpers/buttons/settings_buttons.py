@@ -56,28 +56,49 @@ def tidal_menu_set():
         [
             InlineKeyboardButton(
                 text=lang.select.AUTH_BUTTON,
-                callback_data="tidalAUTH"
-            ),
+                callback_data="ADA_tidal_panel"
+            )
+        ],
+        [
             InlineKeyboardButton(
                 text=lang.select.QUALITY_BUTTON,
-                callback_data="tidalQUALITY"
+                callback_data="QA_tidal"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text=lang.select.API_BUTTON,
+                callback_data="apiTidal_panel"
             )
         ]
     ]
     inline_keyboard = inline_keyboard + exit_button
     return InlineKeyboardMarkup(inline_keyboard)
 
+def tidal_api_set(api, platform):
+    inline_keyboard = []
+    for i in api:
+        inline_keyboard.append(
+            [
+                InlineKeyboardButton(text=f"{i} - {platform[i]}",
+                callback_data=f"apiTidal_{i}"
+                )
+            ]
+        )
+    inline_keyboard = inline_keyboard + exit_button
+    return InlineKeyboardMarkup(inline_keyboard)
 
-def tidal_auth_set():
+
+def common_auth_set(provider):
     inline_keyboard = [
         [
             InlineKeyboardButton(
                 text=lang.select.ADD_AUTH_BUTTON,
-                callback_data="ADA_tidal"
+                callback_data=f"ADA_{provider}_add"
             ),
             InlineKeyboardButton(
                 text=lang.select.REMOVE_AUTH_BUTTON,
-                callback_data="RMA_tidal_warn"
+                callback_data=f"RMA_{provider}_warn"
             )
         ]
     ]
@@ -92,10 +113,41 @@ def confirm_RMA_button():
                 callback_data="RMA_tidal_yes"
             ),
             InlineKeyboardButton(
-                text=lang.select.REMOVE_AUTH_BUTTON,
+                text=lang.select.NO_BUTTON,
                 callback_data="RMA_tidal_no"
             )
         ]
     ]
     inline_keyboard = inline_keyboard + exit_button
     return InlineKeyboardMarkup(inline_keyboard)
+
+def quality_buttons(provider):
+    if provider == "tidal":
+        inline_keyboard = [
+            [
+                InlineKeyboardButton(
+                    text=lang.select.MASTER_QUALITY,
+                    callback_data="SQA_tidal_Master"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=lang.select.HIFI_QUALITY,
+                    callback_data="SQA_tidal_HiFi"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=lang.select.HIGH_QUALITY,
+                    callback_data="SQA_tidal_High"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=lang.select.NORMAL_QUALITY,
+                    callback_data="SQA_tidal_Normal"
+                )
+            ]
+        ]
+        inline_keyboard = inline_keyboard + exit_button
+        return InlineKeyboardMarkup(inline_keyboard)
