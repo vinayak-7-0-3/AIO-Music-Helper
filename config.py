@@ -59,6 +59,11 @@ class Config(object):
     # TIDAL SETTINGS
     TIDAL_TRACK_FORMAT = getenv("TIDAL_TRACK_FORMAT", "{TrackTitle} - {ArtistName}")
 
+    # KKBOX
+    KKBOX_KEY = getenv("KKBOX_KEY", "abc")
+    KKBOX_EMAIL = getenv("KKBOX_EMAIL", "")
+    KKBOX_PASSWORD = getenv("KKBOX_PASSWORD", "")
+
 
     if BOT_USERNAME.startswith("@"):
         BOT_USERNAME = BOT_USERNAME[1:]

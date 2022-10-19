@@ -33,7 +33,11 @@ class EN(object):
 # MUSIC DETAILS - TELEGRAM
 #
 #----------------
-    ALBUM_DETAILS = """
+    USER_MENTION_ALBUM = "❤️ <b>Requested by :</b> {}"
+    USER_MENTION_TRACK = "Requested by {}"
+
+    # TIDAL
+    TIDAL_ALBUM_DETAILS = """
 💽 <b>Title :</b> {0}
 👤 <b>Artist :</b> {1}
 📅 <b>Release Date :</b> {2}
@@ -41,9 +45,14 @@ class EN(object):
 🕒 <b>Duration :</b> {4}
 🔢 <b>Number of Volumes :</b> {5}
 """
+    # KKBOX
+    KKBOX_TRACK_DETAILS = """
+🎶 <b>Title :</b> {0}
+💽 <b>Album :</b> {1}
+📅 <b>Release Date :</b> {2
+"""
 
-    USER_MENTION_ALBUM = "❤️ <b>Requested by :</b> {}"
-    USER_MENTION_TRACK = "Requested by {}"
+    
 
     
 

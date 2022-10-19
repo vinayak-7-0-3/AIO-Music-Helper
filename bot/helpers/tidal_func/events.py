@@ -1,11 +1,12 @@
 import time
 import aigpy
+
+import bot.helpers.tidal_func.apikey as apiKey
+
 from bot import LOGGER
 from bot.helpers.translations import lang
 from bot.helpers.database.postgres_impl import set_db
 from bot.helpers.buttons.settings_buttons import common_auth_set
-
-import bot.helpers.tidal_func.apikey as apiKey
 
 from bot.helpers.tidal_func.tidal import *
 from bot.helpers.tidal_func.enums import *

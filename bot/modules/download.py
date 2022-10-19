@@ -1,6 +1,4 @@
-from unittest import result
-from bot import CMD
-from config import LOGGER
+from bot import CMD, LOGGER
 from pyrogram import Client, filters
 
 from bot.helpers.translations import lang
@@ -8,6 +6,8 @@ from bot.helpers.utils.check_link import check_link
 from bot.helpers.tidal_func.events import startTidal
 from bot.helpers.database.postgres_impl import user_settings
 from bot.helpers.utils.auth_check import check_id, checkLogins
+
+from bot.helpers.kkbox.kkbox_helper import kkbox
 
 @Client.on_message(filters.command(CMD.DOWNLOAD))
 async def download_tidal(bot, update):
@@ -46,11 +46,13 @@ async def download_tidal(bot, update):
                 u_name = f'<a href="tg://user?id={update.from_user.id}">{update.from_user.first_name}</a>'
 
             user_settings.set_var(update.chat.id, "ON_TASK", True)
-            if provider == "tidal":
-                await startTidal(link, bot, update.chat.id, reply_to_id, update.from_user.id, u_name)
-
-
-
-
-            user_settings.set_var(update.chat.id, "ON_TASK", False)
+            try:
+                if provider == "tidal":
+                    await startTidal(link, bot, update.chat.id, reply_to_id, update.from_user.id, u_name)
+                elif provider == "kkbox":
+                    await kkbox.start(link, bot, update, reply_to_id)
+                    LOGGER.info('Succesfully uploaded KKBOX')
+            except Exception as e:
+                LOGGER.warning(e)
+                user_settings.set_var(update.chat.id, "ON_TASK", False)
             

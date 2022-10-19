@@ -101,5 +101,7 @@ async def checkLogins(provider):
         pass
     elif provider == "deezer":
         pass
+    elif provider == "kkbox":
+        return False, "ERR"
     else:
         pass
