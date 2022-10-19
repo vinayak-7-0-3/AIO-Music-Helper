@@ -52,6 +52,7 @@ async def download_tidal(bot, update):
                 elif provider == "kkbox":
                     await kkbox.start(link, bot, update, reply_to_id)
                     LOGGER.info('Succesfully uploaded KKBOX')
+                user_settings.set_var(update.chat.id, "ON_TASK", False)
             except Exception as e:
                 LOGGER.warning(e)
                 user_settings.set_var(update.chat.id, "ON_TASK", False)
