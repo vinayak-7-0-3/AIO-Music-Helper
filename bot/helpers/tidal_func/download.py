@@ -92,7 +92,7 @@ async def postCover(album, bot, c_id, r_id, u_name):
     if album_art is not None:
         aigpy.net.downloadFile(album_art, album_art_path)
 
-        post_details = lang.select.ALBUM_DETAILS.format(
+        post_details = lang.select.TIDAL_ALBUM_DETAILS.format(
                 album.title,
                 album.artist.name,
                 album.releaseDate,
