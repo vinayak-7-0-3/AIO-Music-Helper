@@ -50,7 +50,7 @@ async def download_tidal(bot, update):
                 if provider == "tidal":
                     await startTidal(link, bot, update.chat.id, reply_to_id, update.from_user.id, u_name)
                 elif provider == "kkbox":
-                    await kkbox.start(link, bot, update, reply_to_id)
+                    await kkbox.start(link, bot, update, reply_to_id, u_name)
                     LOGGER.info('Succesfully uploaded KKBOX')
                 user_settings.set_var(update.chat.id, "ON_TASK", False)
             except Exception as e:

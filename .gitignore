@@ -153,3 +153,4 @@ cython_debug/
 *.session
 *.token.json
 *.session-journal
+launch.json

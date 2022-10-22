@@ -46,10 +46,11 @@ class EN(object):
 🔢 <b>Number of Volumes :</b> {5}
 """
     # KKBOX
-    KKBOX_TRACK_DETAILS = """
+    KKBOX_ALBUM_DETAILS = """
 🎶 <b>Title :</b> {0}
-💽 <b>Album :</b> {1}
-📅 <b>Release Date :</b> {2
+👤 <b>Artist :</b> {1}
+📅 <b>Release Date :</b> {2}
+📀 <b>Number of Tracks :</b> {3}
 """
 
     

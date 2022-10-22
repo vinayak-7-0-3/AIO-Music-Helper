@@ -192,8 +192,8 @@ class KkboxAPI:
                 # or if it's a bug on their slow-as-hell servers
                 sleep(0.5)
                 return self.get_ticket(song_id, play_mode)
-            raise self.exception("Couldn't get track URLs")
-
+            LOGGER.warning("Couldn't get track URLs")
+            
         return resp['uris']
 
     def auth_device(self):

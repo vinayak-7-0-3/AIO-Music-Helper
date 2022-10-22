@@ -13,6 +13,11 @@ if not os.environ.get("ENV"):
     load_dotenv('.env', override=True)
 
 class Config(object):
+#--------------------
+
+# MAIN BOT VARIABLES
+
+#--------------------
     try:
         TG_BOT_TOKEN = getenv("TG_BOT_TOKEN")
         APP_ID = int(getenv("APP_ID", 123))
@@ -55,14 +60,28 @@ class Config(object):
     BOT_LANGUAGE = getenv("BOT_LANGUAGE", "en")
     MENTION_USERS = getenv("MENTION_USERS", False)
     ANIT_SPAM_MODE = getenv("ANIT_SPAM_MODE", False)
+#--------------------
 
-    # TIDAL SETTINGS
+# TIDAL VARIABLES
+
+#--------------------
     TIDAL_TRACK_FORMAT = getenv("TIDAL_TRACK_FORMAT", "{TrackTitle} - {ArtistName}")
+#--------------------
 
-    # KKBOX
+# KKBOX VARIABLES
+
+#--------------------
     KKBOX_KEY = getenv("KKBOX_KEY", "abc")
     KKBOX_EMAIL = getenv("KKBOX_EMAIL", "")
     KKBOX_PASSWORD = getenv("KKBOX_PASSWORD", "")
+#--------------------
+
+# QOBUZ VARIABLES
+
+#--------------------
+    QOBUZ_EMAIL = getenv("QOBUZ_EMAIL", "")
+    QOBUZ_PASSWORD = getenv("QOBUZ_PASSWORD", "")
+    QOBUZ_TRACK_FORMAT = getenv("QOBUZ_TRACK_FORMAT", "{tracknumber}. {tracktitle}")
 
 
     if BOT_USERNAME.startswith("@"):

@@ -6,6 +6,7 @@ from bot import LOGGER
 from config import Config
 from urllib.parse import urlparse
 
+from bot.helpers.translations import lang
 from bot.helpers.kkbox.kkapi import kkbox_api
 from bot.helpers.utils.metadata import kkbox_metadata
 
@@ -32,7 +33,7 @@ def k_url_parse(link):
     media_id = path_match.group(2)
     return type, media_id
 
-async def getAlbumArt(data, r_id, bot=None, update=None, res='80x80', type='thumb', post=False):
+async def getAlbumArt(data, r_id, res='80x80', type='thumb'):
     try:
         url = data['cover_photo_info']['url_template']
     except KeyError:
@@ -43,26 +44,44 @@ async def getAlbumArt(data, r_id, bot=None, update=None, res='80x80', type='thum
 
     url = url.replace('{format}', "jpg")
 
-    if post:
+    thumb_path = Config.DOWNLOAD_BASE_DIR + f"/{type}/{r_id}.jpg"
+    if type == 'albumart':
         url = url.replace('fit/{width}x{height}', 'original')
         url = url.replace('cropresize/{width}x{height}', 'original')
-        await bot.send_photo(
-            chat_id=update.chat.id,
-            photo=url,
-            caption="hello",
-            reply_to_message_id=r_id
-        )
-    else:
-        thumb_path = Config.DOWNLOAD_BASE_DIR + f"/{type}/{r_id}.jpg"
-        if type == 'albumart':
-            url = url.replace('fit/{width}x{height}', 'original')
-            url = url.replace('cropresize/{width}x{height}', 'original')
-        else:  
-            url = url.replace('{width}x{height}', res)
-        aigpy.net.downloadFile(url, thumb_path)
-        return thumb_path
+    else:  
+        url = url.replace('{width}x{height}', res)
+    aigpy.net.downloadFile(url, thumb_path)
+    return thumb_path
 
-async def dlTrack(id, data, bot, update, r_id, album):
+async def postAlbumData(data, r_id, bot, update, u_name):
+    url = data['album']['album_photo_info']['url_template']
+
+    url = url.replace('{format}', "jpg")
+    url = url.replace('fit/{width}x{height}', 'original')
+    url = url.replace('cropresize/{width}x{height}', 'original')
+
+    no_tracks = 0
+    for song in data['songs']:
+        no_tracks+=1
+
+    post_details = lang.select.KKBOX_ALBUM_DETAILS.format(
+            data['album']['album_name'],
+            data['album']['artist_name'],
+            data['album']['album_date'],
+            no_tracks
+    )
+
+    if Config.MENTION_USERS == "True":
+            post_details = post_details + lang.select.USER_MENTION_ALBUM.format(u_name)
+    
+    await bot.send_photo(
+        chat_id=update.chat.id,
+        photo=url,
+        caption=post_details,
+        reply_to_message_id=r_id
+    )
+
+async def dlTrack(id, data, bot, update, r_id, album, u_name=None, type=None):
     quality = "192k"
 
     if quality in data['audio_quality']:
@@ -99,15 +118,20 @@ async def dlTrack(id, data, bot, update, r_id, album):
             kkbox_api.kkdrm_dl(url, audio_path)
         LOGGER.info(f"Successfully downloaded {data['song_name']}")
 
-        thumb_path = await getAlbumArt(data, r_id, bot, update)
-        album_art = await getAlbumArt(data, r_id, bot, update, '1280x1280', 'albumart')
+        thumb_path = await getAlbumArt(data, r_id)
+        album_art = await getAlbumArt(data, r_id, '1280x1280', 'albumart')
         
         await kkbox_metadata(audio_path, ext, data, album, album_art)
+
+        if type == 'track' and Config.MENTION_USERS == "True":
+            text = lang.select.USER_MENTION_TRACK.format(u_name)
+        else:
+            text = None
 
         await bot.send_audio(
             chat_id=update.chat.id,
             audio=audio_path,
-            caption=file_name,
+            caption=text,
             performer=data['artist_name'],
             title=data['song_name'],
             thumb=thumb_path,
