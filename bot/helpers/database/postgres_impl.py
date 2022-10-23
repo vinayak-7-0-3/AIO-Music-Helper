@@ -16,6 +16,9 @@ TIDAL_AUTH_DONE - Status of Tidal Session (True/False)
 TIDAL_API_KEY_INDEX - Index of API Key Selected
 TIDAL_QUALITY - Music quality
 
+KKBOX_QUALITY - Quality Of KKBOX Tracks (128k, 192k, 320k, hifi, hires)
+KKBOX_AUTH - Status of KKBOX Authentication (True/False)
+
 
 AUTH_CHATS - Chats where bot is allowed
 AUTH_USERS - Users who can use bot

@@ -25,6 +25,12 @@ def main_menu_set():
         ],
         [
             InlineKeyboardButton(
+                text=lang.select.KKBOX_BUTTON,
+                callback_data="kkboxPanel"
+            )
+        ],
+        [
+            InlineKeyboardButton(
                 text=lang.select.QOBUZ_BUTTON,
                 callback_data="qobuzPanel"
             )
@@ -121,7 +127,7 @@ def confirm_RMA_button():
     inline_keyboard = inline_keyboard + exit_button
     return InlineKeyboardMarkup(inline_keyboard)
 
-def quality_buttons(provider):
+def quality_buttons(provider, data=None):
     if provider == "tidal":
         inline_keyboard = [
             [
@@ -149,5 +155,28 @@ def quality_buttons(provider):
                 )
             ]
         ]
-        inline_keyboard = inline_keyboard + exit_button
-        return InlineKeyboardMarkup(inline_keyboard)
+    elif provider == 'kkbox':
+        inline_keyboard = []
+        for quality in data:
+            inline_keyboard.append(
+            [
+                InlineKeyboardButton(
+                    text=quality.upper(),
+                    callback_data=f"SQA_kkbox_{quality}"
+                )
+            ]
+            )
+    inline_keyboard = inline_keyboard + exit_button
+    return InlineKeyboardMarkup(inline_keyboard)
+
+def kkbox_menu_set():
+    inline_keyboard = [
+        [
+            InlineKeyboardButton(
+                text=lang.select.QUALITY_BUTTON,
+                callback_data="QA_kkbox"
+            )
+        ]
+    ]
+    inline_keyboard = inline_keyboard + exit_button
+    return InlineKeyboardMarkup(inline_keyboard)

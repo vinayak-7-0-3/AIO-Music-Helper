@@ -25,6 +25,8 @@ class EN(object):
     TIDAL_AUTH_NEXT_STEP = "Go to {0} within the next {1} to complete tidal authentication."
     TIDAL_AUTH_SUCCESS = "Tidal authentication successful.\n\nIt is now valid for {}"
     TIDAL_ALREADY_AUTH = "Your authentication is already done.\nIts is valid for {}"
+    # KKBOX
+    KKBOX_NOT_AUTH = "KKBOX account credentials not given or subcription expired"
 
 
 
@@ -88,6 +90,18 @@ API Key Valid : <code>{2}</code>
 {3}
 <b>RELOGIN NEEDED AFTER CHANGING API PLATFORM</b>
 """
+    #
+    # KKBOXPANEL
+    #
+    KKBOX_SETTINGS_PANEL = """
+<b>Configure Tidal Settings Here</b>
+
+<b><u>CURRENT SETTINGS</u></b>
+
+<b>Quality : </b><code>{0}</code>
+<b>Auth Status : </b><code>{1}</code>
+"""
+
     
 
 
@@ -103,6 +117,7 @@ API Key Valid : <code>{2}</code>
     TIDAL_BUTTON = "TIDAL SETTINGS"
     QOBUZ_BUTTON = "QOBUZ SETTINGS"
     DEEZER_BUTTON = "DEEZER SETTINGS"
+    KKBOX_BUTTON = 'KKBOX SETTINGS'
     SOUNDCLOUD_BUTTON = "SOUNDCLOUD SETTINGS"
     CLOSE_BUTTON = "CLOSE"
     API_BUTTON = "API"

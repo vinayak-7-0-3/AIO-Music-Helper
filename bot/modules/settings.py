@@ -1,14 +1,18 @@
 from bot import CMD
+from config import LOGGER
 from pyrogram import Client, filters
+from pyrogram.errors import MessageNotModified
 
 import bot.helpers.tidal_func.apikey as tidalAPI
 
 from bot.helpers.translations import lang
+from bot.helpers.kkbox.kkapi import kkbox_api
 from bot.helpers.buttons.settings_buttons import *
 from bot.helpers.database.postgres_impl import set_db
 from bot.helpers.tidal_func.settings import TIDAL_SETTINGS
 from bot.helpers.utils.auth_check import check_id, checkLogins
 from bot.helpers.tidal_func.events import loginTidal, getapiInfoTidal, checkAPITidal
+
 
 # MAIN COMMAND
 @Client.on_message(filters.command(CMD.SETTINGS))
@@ -37,6 +41,23 @@ async def tidal_panel_cb(bot, update):
                 db_auth
             ),
             reply_markup=tidal_menu_set()
+        )
+
+
+# KKBOX SETTINGS PANEL
+@Client.on_callback_query(filters.regex(pattern=r"^kkboxPanel"))
+async def kkbox_panel_cb(bot, update):
+    if await check_id(update.from_user.id, restricted=True):
+        quality, _ = set_db.get_variable("KKBOX_QUALITY")
+        auth, _ = set_db.get_variable("KKBOX_AUTH")
+        await bot.edit_message_text(
+            chat_id=update.message.chat.id,
+            message_id=update.message.id,
+            text=lang.select.KKBOX_SETTINGS_PANEL.format(
+                quality.upper(),
+                auth
+            ),
+            reply_markup=kkbox_menu_set()
         )
 
 
@@ -130,16 +151,22 @@ async def add_auth_cb(bot, update):
 async def quality_cb(bot, update):
     if await check_id(update.from_user.id, restricted=True):
         provider = update.data.split("_")[1]
+        data = None
         if provider == "tidal":
             current_quality, _ = set_db.get_variable("TIDAL_QUALITY")
             if not current_quality:
                 current_quality = "Default"
-            await bot.edit_message_text(
-                chat_id=update.message.chat.id,
-                message_id=update.message.id,
-                text=lang.select.QUALITY_SET_PANEL.format(provider.title(), current_quality),
-                reply_markup=quality_buttons(provider)
-            )
+        elif provider == 'kkbox':
+            current_quality, _ = set_db.get_variable("KKBOX_QUALITY")
+            data  = kkbox_api.available_qualities
+
+        await bot.edit_message_text(
+            chat_id=update.message.chat.id,
+            message_id=update.message.id,
+            text=lang.select.QUALITY_SET_PANEL.format(provider.title(), current_quality),
+            reply_markup=quality_buttons(provider, data)
+        )
+            
 
 # FOR SETTING QUALITY
 @Client.on_callback_query(filters.regex(pattern=r"^SQA"))
@@ -147,18 +174,28 @@ async def set_quality_cb(bot, update):
     if await check_id(update.from_user.id, restricted=True):
         provider = update.data.split("_")[1]
         quality = update.data.split("_")[2]
-
+        data = None
         if provider == "tidal":
             set_db.set_variable("TIDAL_QUALITY", quality, False, None)
             current_quality, _ = set_db.get_variable("TIDAL_QUALITY")
             if not current_quality:
                 current_quality = "Default"
+        elif provider == 'kkbox':
+            set_db.set_variable("KKBOX_QUALITY", quality, False, None)
+            current_quality = quality
+            data = kkbox_api.available_qualities
+        try:
             await bot.edit_message_text(
                 chat_id=update.message.chat.id,
                 message_id=update.message.id,
                 text=lang.select.QUALITY_SET_PANEL.format(provider.title(), current_quality),
-                reply_markup=quality_buttons(provider)
+                reply_markup=quality_buttons(provider, data)
             )
+        except MessageNotModified:
+            pass
+        except Exception as e:
+            LOGGER.warning(e)
+
 
 @Client.on_callback_query(filters.regex(pattern=r"^main_menu"))
 async def main_menu_cb(bot, update):

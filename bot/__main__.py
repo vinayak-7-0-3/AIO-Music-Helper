@@ -3,6 +3,7 @@ from pyrogram import Client
 from bot import Config, LOGGER
 from bot.helpers.kkbox.kkbox_helper import kkbox
 from bot.helpers.utils.auth_check import get_chats
+from bot.helpers.database.postgres_impl import set_db
 from bot.helpers.tidal_func.events import checkAPITidal
 from bot.helpers.tidal_func.settings import TIDAL_SETTINGS, TIDAL_TOKEN
 
@@ -19,6 +20,8 @@ async def loadConfigs():
     if not "" in {Config.KKBOX_EMAIL, Config.KKBOX_KEY, Config.KKBOX_PASSWORD}:
         LOGGER.info("Loading KKBOX Configs....")
         await kkbox.login()
+    else:
+        set_db.set_variable("KKBOX_AUTH", False, False, None)
 
 class Bot(Client):
     def __init__(self):
@@ -39,7 +42,7 @@ class Bot(Client):
         if Config.ANIT_SPAM_MODE == "True":
             LOGGER.info("ANTI-SPAM MODE ON")
         await get_chats()
-        LOGGER.info("❤ MUSIC HELPER BOT BETA v0.1 STARTED SUCCESSFULLY ❤")
+        LOGGER.info("❤ MUSIC HELPER BOT BETA v0.23 STARTED SUCCESSFULLY ❤")
 
     async def stop(self, *args):
         await super().stop()

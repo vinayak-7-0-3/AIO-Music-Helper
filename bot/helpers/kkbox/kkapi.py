@@ -2,6 +2,7 @@ import json
 import requests
 
 from bot import LOGGER
+from config import Config
 from random import randrange
 from time import time, sleep
 from Cryptodome.Hash import MD5
@@ -9,7 +10,7 @@ from Cryptodome.Cipher import ARC4
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 
-from config import Config
+from bot.helpers.database.postgres_impl import set_db
 
 class KkboxAPI:
     def __init__(self, kc1_key):
@@ -73,16 +74,19 @@ class KkboxAPI:
         })
 
         if not resp and region_bypass:
-            raise self.exception('Account expired')
+            LOGGER.warning('KKBOX Account expired')
 
         if resp['status'] not in (2, 3, -4):
             if resp['status'] == -1:
-                raise self.exception('Email not found')
+                LOGGER.warning('Incorrect Email Provided For KKBOX')
+                exit(1)
             elif resp['status'] == -2:
-                raise self.exception('Incorrect password')
+                LOGGER.warning('Incorrect Password Provided For KKBOX')
+                exit(1)
             elif resp['status'] == 1:
-                raise self.exception('Account expired')
-            raise self.exception('Login failed')
+                LOGGER.warning('KKBOX Account expired')
+                set_db.set_variable("KKBOX_AUTH", False, False, None)
+            LOGGER.warning('Login failed')
 
         if resp['status'] == -4 and not region_bypass:
             # region locked, need to call different login host
@@ -91,6 +95,8 @@ class KkboxAPI:
         self.region_bypass = region_bypass
 
         self.apply_session(resp)
+        self.set_quality()
+        set_db.set_variable("KKBOX_AUTH", True, False, None)
 
     def renew_session(self):
         host = 'login' if not self.region_bypass else 'login-utapass'
@@ -98,6 +104,7 @@ class KkboxAPI:
         if resp['status'] not in (2, 3, -4):
             raise self.exception('Session renewal failed')
         self.apply_session(resp)
+        self.set_quality()
 
     def apply_session(self, resp):
         self.sid = resp['sid']
@@ -109,6 +116,16 @@ class KkboxAPI:
         if resp['high_quality']:
             self.available_qualities.append('hifi')
             self.available_qualities.append('hires')
+
+    def set_quality(self):
+        quality, _ = set_db.get_variable("KKBOX_QUALITY")
+
+        if quality:
+            if not quality in self.available_qualities:
+                LOGGER.info('KKBOX quality chosen in settings is not available in your subcription now.')
+                set_db.set_variable("KKBOX_QUALITY", self.available_qualities[-1], False, None)
+        else:
+            set_db.set_variable("KKBOX_QUALITY", self.available_qualities[-1], False, None)
 
     def get_songs(self, ids):
         resp = self.api_call('ds', 'v2/song', payload={

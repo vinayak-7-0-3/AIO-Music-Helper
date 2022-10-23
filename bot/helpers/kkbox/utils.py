@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 from bot.helpers.translations import lang
 from bot.helpers.kkbox.kkapi import kkbox_api
 from bot.helpers.utils.metadata import kkbox_metadata
+from bot.helpers.database.postgres_impl import set_db
 
 
 def k_url_parse(link):
@@ -82,62 +83,66 @@ async def postAlbumData(data, r_id, bot, update, u_name):
     )
 
 async def dlTrack(id, data, bot, update, r_id, album, u_name=None, type=None):
-    quality = "192k"
+    quality, _ = set_db.get_variable("KKBOX_QUALITY")
 
-    if quality in data['audio_quality']:
-        format = {
-            '128k': 'mp3_128k_chromecast',
-            '192k': 'mp3_192k_kkdrm1',
-            '320k': 'aac_320k_m4a_kkdrm1',
-            'hifi': 'flac_16_download_kkdrm',
-            'hires': 'flac_24_download_kkdrm',
-        }[quality]
+    if not quality in data['audio_quality']:
+        LOGGER.info(f'Quality - {quality} not available for the track - {data["song_name"]}')
+        quality = data['audio_quality'][-1]
 
-        play_mode = None
-        if format == 'mp3_128k_chromecast':
-            play_mode = 'chromecast'
+    format = {
+        '128k': 'mp3_128k_chromecast',
+        '192k': 'mp3_192k_kkdrm1',
+        '320k': 'aac_320k_m4a_kkdrm1',
+        'hifi': 'flac_16_download_kkdrm',
+        'hires': 'flac_24_download_kkdrm',
+    }[quality]
 
-        url = None
-        urls = kkbox_api.get_ticket(id, play_mode)
-        ext = format.split('_')[0]
-        for fmt in urls:
-            if fmt['name'] == format:
-                url = fmt['url']
-                break
 
-        temp_path = Config.DOWNLOAD_BASE_DIR + f"/KKBOX/{r_id}/"
-        if not os.path.isdir(temp_path):
-            os.makedirs(temp_path)
-        file_name = f"{data['song_name']}.{ext}"
-        audio_path = temp_path + file_name
+    play_mode = None
+    if format == 'mp3_128k_chromecast':
+        play_mode = 'chromecast'
 
-        # MP3 HAS NO DRM
-        if format == 'mp3_128k_chromecast':
-            aigpy.net.downloadFile(url, audio_path)
-        else:
-            kkbox_api.kkdrm_dl(url, audio_path)
-        LOGGER.info(f"Successfully downloaded {data['song_name']}")
+    url = None
+    urls = kkbox_api.get_ticket(id, play_mode)
+    ext = format.split('_')[0]
+    for fmt in urls:
+        if fmt['name'] == format:
+            url = fmt['url']
+            break
 
-        thumb_path = await getAlbumArt(data, r_id)
-        album_art = await getAlbumArt(data, r_id, '1280x1280', 'albumart')
-        
-        await kkbox_metadata(audio_path, ext, data, album, album_art)
+    temp_path = Config.DOWNLOAD_BASE_DIR + f"/KKBOX/{r_id}/"
+    if not os.path.isdir(temp_path):
+        os.makedirs(temp_path)
+    file_name = f"{data['song_name']}.{ext}"
+    audio_path = temp_path + file_name
 
-        if type == 'track' and Config.MENTION_USERS == "True":
-            text = lang.select.USER_MENTION_TRACK.format(u_name)
-        else:
-            text = None
+    # MP3 HAS NO DRM
+    if format == 'mp3_128k_chromecast':
+        aigpy.net.downloadFile(url, audio_path)
+    else:
+        kkbox_api.kkdrm_dl(url, audio_path)
+    LOGGER.info(f"Successfully downloaded {data['song_name']}")
 
-        await bot.send_audio(
-            chat_id=update.chat.id,
-            audio=audio_path,
-            caption=text,
-            performer=data['artist_name'],
-            title=data['song_name'],
-            thumb=thumb_path,
-            reply_to_message_id=r_id
-        )
+    thumb_path = await getAlbumArt(data, r_id)
+    album_art = await getAlbumArt(data, r_id, '1280x1280', 'albumart')
+    
+    await kkbox_metadata(audio_path, ext, data, album, album_art)
 
-        os.remove(thumb_path)
-        os.remove(album_art)
-        os.remove(audio_path)
+    if type == 'track' and Config.MENTION_USERS == "True":
+        text = lang.select.USER_MENTION_TRACK.format(u_name)
+    else:
+        text = None
+
+    await bot.send_audio(
+        chat_id=update.chat.id,
+        audio=audio_path,
+        caption=text,
+        performer=data['artist_name'],
+        title=data['song_name'],
+        thumb=thumb_path,
+        reply_to_message_id=r_id
+    )
+
+    os.remove(thumb_path)
+    os.remove(album_art)
+    os.remove(audio_path)
