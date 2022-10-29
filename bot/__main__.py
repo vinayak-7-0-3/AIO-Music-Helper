@@ -7,6 +7,8 @@ from bot.helpers.database.postgres_impl import set_db
 from bot.helpers.tidal_func.events import checkAPITidal
 from bot.helpers.tidal_func.settings import TIDAL_SETTINGS, TIDAL_TOKEN
 
+from bot.helpers.qobuz.handler import qobuz
+
 plugins = dict(
     root="bot/modules"
 )
@@ -22,6 +24,8 @@ async def loadConfigs():
         await kkbox.login()
     else:
         set_db.set_variable("KKBOX_AUTH", False, False, None)
+    if not "" in {Config.QOBUZ_EMAIL, Config.QOBUZ_PASSWORD}:
+        await qobuz.login()
 
 class Bot(Client):
     def __init__(self):

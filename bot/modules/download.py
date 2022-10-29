@@ -8,6 +8,7 @@ from bot.helpers.database.postgres_impl import user_settings
 from bot.helpers.utils.auth_check import check_id, checkLogins
 
 from bot.helpers.kkbox.kkbox_helper import kkbox
+from bot.helpers.qobuz.handler import qobuz
 
 @Client.on_message(filters.command(CMD.DOWNLOAD))
 async def download_tidal(bot, update):
@@ -51,7 +52,8 @@ async def download_tidal(bot, update):
                     await startTidal(link, bot, update.chat.id, reply_to_id, update.from_user.id, u_name)
                 elif provider == "kkbox":
                     await kkbox.start(link, bot, update, reply_to_id, u_name)
-                    LOGGER.info('Succesfully uploaded KKBOX')
+                elif provider == 'qobuz':
+                    await qobuz.start(link, bot, update, reply_to_id, u_name)
                 user_settings.set_var(update.chat.id, "ON_TASK", False)
             except Exception as e:
                 LOGGER.warning(e)

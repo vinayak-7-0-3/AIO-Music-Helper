@@ -242,7 +242,6 @@ class KkboxAPI:
                 f.write(rc4.decrypt(chunk))
 
 
-
 def create_requests_session():
     session_ = requests.Session()
     retries = Retry(total=10, backoff_factor=0.4, status_forcelist=[429, 500, 502, 503, 504])

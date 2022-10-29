@@ -19,6 +19,7 @@ TIDAL_QUALITY - Music quality
 KKBOX_QUALITY - Quality Of KKBOX Tracks (128k, 192k, 320k, hifi, hires)
 KKBOX_AUTH - Status of KKBOX Authentication (True/False)
 
+QOBUZ_AUTH - Status of QOBUZ Authentication (True/False)
 
 AUTH_CHATS - Chats where bot is allowed
 AUTH_USERS - Users who can use bot

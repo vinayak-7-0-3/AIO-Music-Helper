@@ -7,24 +7,16 @@ class Kkbox_Helper:
         kkbox_api.login()
 
     async def start(self, link, bot, update, r_id, u_name):
-        auth, _ = set_db.get_variable("KKBOX_AUTH")
-        if auth:
-            type, id = k_url_parse(link)
-            
-            if type == 'track':
-                await self.getTrack(id, bot, update, r_id, u_name)
-            elif type == 'playlist':
-                pass
-            elif type == 'album':
-                await self.getAlbum(id, bot, update, r_id, u_name)
-            elif type == 'artist':
-                pass
-        else:
-            await bot.send_message(
-                chat_id=update.chat.id,
-                text=lang.select.KKBOX_NOT_AUTH,
-                reply_to_message_id=r_id
-            )
+        type, id = k_url_parse(link)
+        
+        if type == 'track':
+            await self.getTrack(id, bot, update, r_id, u_name)
+        elif type == 'playlist':
+            pass
+        elif type == 'album':
+            await self.getAlbum(id, bot, update, r_id, u_name)
+        elif type == 'artist':
+            pass
 
     async def getTrack(self, id, bot, update, r_id, u_name):
         data = kkbox_api.get_songs([id])[0]

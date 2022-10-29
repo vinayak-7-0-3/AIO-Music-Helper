@@ -5,6 +5,7 @@ import aigpy
 from bot import LOGGER
 from config import Config
 from urllib.parse import urlparse
+from pathvalidate import sanitize_filename
 
 from bot.helpers.translations import lang
 from bot.helpers.kkbox.kkapi import kkbox_api
@@ -113,7 +114,10 @@ async def dlTrack(id, data, bot, update, r_id, album, u_name=None, type=None):
     temp_path = Config.DOWNLOAD_BASE_DIR + f"/KKBOX/{r_id}/"
     if not os.path.isdir(temp_path):
         os.makedirs(temp_path)
+
     file_name = f"{data['song_name']}.{ext}"
+    file_name = sanitize_filename(file_name)
+
     audio_path = temp_path + file_name
 
     # MP3 HAS NO DRM

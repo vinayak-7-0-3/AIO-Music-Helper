@@ -1,13 +1,10 @@
 import re
 import base64
-import logging
 
 from requests import Session
 from collections import OrderedDict
 
 # Modified code based on DashLt's spoofbuz
-
-logger = logging.getLogger(__name__)
 
 _SEED_TIMEZONE_REGEX = re.compile(
     r'[a-z]\.initialSeed\("(?P<seed>[\w=]+)",window\.utimezone\.(?P<timezone>[a-z]+)\)'
@@ -31,7 +28,6 @@ class Bundle:
     def __init__(self):
         self._session = Session()
 
-        logger.debug("Getting logging page")
         response = self._session.get(f"{_BASE_URL}/login")
         response.raise_for_status()
 
@@ -41,7 +37,6 @@ class Bundle:
 
         bundle_url = bundle_url_match.group(1)
 
-        logger.debug("Getting bundle")
         response = self._session.get(_BASE_URL + bundle_url)
         response.raise_for_status()
 
@@ -55,7 +50,6 @@ class Bundle:
         return match.group("app_id")
 
     def get_secrets(self):
-        logger.debug("Getting secrets")
         seed_matches = _SEED_TIMEZONE_REGEX.finditer(self._bundle)
         secrets = OrderedDict()
 

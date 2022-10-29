@@ -2,7 +2,7 @@ from bot import Config
 
 from bot.helpers.translations import lang
 from bot.helpers.tidal_func.events import checkLoginTidal
-from bot.helpers.database.postgres_impl import users_db, admins_db, chats_db, user_settings
+from bot.helpers.database.postgres_impl import users_db, admins_db, chats_db, user_settings, set_db
 
 allowed_chats = []
 allowed_users = []
@@ -91,6 +91,7 @@ async def check_id(id=None, message=None, restricted=False):
             return False
 
 async def checkLogins(provider):
+    # return Error and Error Message
     if provider == "tidal":
         auth, msg = await checkLoginTidal()
         if auth:
@@ -98,10 +99,13 @@ async def checkLogins(provider):
         else:
             return True, msg
     elif provider == "qobuz":
-        pass
+        return False, None
     elif provider == "deezer":
         pass
     elif provider == "kkbox":
-        return False, "ERR"
+        auth, _ = set_db.get_variable("KKBOX_AUTH")
+        if not auth:
+            return True, lang.select.KKBOX_NOT_AUTH
+        return False, None
     else:
         pass

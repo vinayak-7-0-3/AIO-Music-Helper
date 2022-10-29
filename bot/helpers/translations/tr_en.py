@@ -55,6 +55,14 @@ class EN(object):
 📀 <b>Number of Tracks :</b> {3}
 """
 
+    # QOBUZ
+    QOBUZ_ALBUM_DETAILS = """
+🎶 <b>Title :</b> {0}
+👤 <b>Artist :</b> {1}
+📅 <b>Release Date :</b> {2}
+📀 <b>Number of Tracks :</b> {3}
+"""
+
     
 
     
@@ -134,3 +142,12 @@ API Key Valid : <code>{2}</code>
     HIGH_QUALITY = "High"
     NORMAL_QUALITY = "Normal"
 
+
+
+#----------------
+#
+# ERRORS
+#
+#----------------
+    # QOBUZ
+    ERR_QOBUZ_NOT_STREAMABLE = "This album is not available to download."

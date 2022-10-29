@@ -1,20 +1,20 @@
-# From Orpheusdl - tagging.py
 import aigpy
 
-"""
-metadata = {
-    'title': ,
-    'album': ,
-    'artist': ,
-    'albumartist': ,
-    'tracknumber': ,
-    'date': ,
-    'lyrics': ,
-    'isrc': ,
-    'totaltracks': ,
-    'albumart' :
-} 
-"""
+base_metadata = {
+    'title': '',
+    'album': '',
+    'artist': '',
+    'albumartist': '',
+    'tracknumber': '',
+    'date': '',
+    'lyrics': '',
+    'isrc': '',
+    'totaltracks': '',
+    'albumart' : '',
+    'thumbnail' : '',
+    'extention': '',
+    'duration': ''
+}
 
 async def kkbox_metadata(audio_path, ext, data, album_data, album_art=None):
     try:
@@ -42,9 +42,11 @@ async def kkbox_metadata(audio_path, ext, data, album_data, album_art=None):
         'lyrics': '',
         'isrc': '',
         'totaltracks': totaltracks,
-        'albumart': album_art
+        'albumart': album_art,
+        'thumbnail' : '',
+        'extention': ext,
+        'duration': ''
     }
-
     await set_metadata(audio_path, metadata)
 
 async def set_metadata(audio_path, data):
