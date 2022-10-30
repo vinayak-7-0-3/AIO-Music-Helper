@@ -158,7 +158,7 @@ async def get_duration(path, ext, track_meta):
     track_meta['duration'] = audio.info.length
 
 
-async def post_cover(meta, bot, update, r_id, u_name):
+async def post_cover(meta, bot, update, r_id, u_name, quality=None):
     post_details = lang.select.QOBUZ_ALBUM_DETAILS.format(
         meta['title'],
         meta['artist'],
@@ -166,6 +166,8 @@ async def post_cover(meta, bot, update, r_id, u_name):
         meta['totaltracks']
     )
 
+    if quality:
+        post_details = post_details + lang.select.QOBUZ_ALBUM_QUALITY_ADDON.format(quality)
     if Config.MENTION_USERS == "True":
             post_details = post_details + lang.select.USER_MENTION_ALBUM.format(u_name)
 

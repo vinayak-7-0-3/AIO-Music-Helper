@@ -63,6 +63,8 @@ class EN(object):
 📀 <b>Number of Tracks :</b> {3}
 """
 
+    QOBUZ_ALBUM_QUALITY_ADDON = "💫 <b>Quality :</b> {}k \n"
+
     
 
     

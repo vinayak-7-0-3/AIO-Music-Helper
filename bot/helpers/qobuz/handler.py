@@ -50,8 +50,9 @@ class QobuzDL:
                 text=err,
                 reply_to_message_id=r_id
             )
-            
-        await post_cover(metadata, bot, update, r_id, u_name)
+
+        ext, quality = await check_quality(raw_meta, 'album')
+        await post_cover(metadata, bot, update, r_id, u_name, quality)
         tracks = raw_meta['tracks']['items']
         for track in tracks:
             await self.startTrack(bot, update, track['id'], r_id, u_name, metadata, raw_meta, True)
