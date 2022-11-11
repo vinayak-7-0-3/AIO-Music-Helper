@@ -1,17 +1,17 @@
-import re
 import os
+import re
 import aigpy
 import requests
 
-from bot import LOGGER
-from config import Config
-from pathvalidate import sanitize_filename
 from mutagen.flac import FLAC
 from mutagen.mp3 import EasyMP3
+from pathvalidate import sanitize_filename
 
-from bot.helpers.translations import lang
+from bot import LOGGER
 from bot.helpers.qobuz.qopy import qobuz_api
+from bot.helpers.translations import lang
 from bot.helpers.utils.metadata import base_metadata, set_metadata
+from config import Config
 
 QL_DOWNGRADE = "FormatRestrictedByFormatAvailability"
 
@@ -120,6 +120,7 @@ async def download_track(bot, update, id, r_id, u_name, track_meta, path, album_
     os.remove(thumb_path)
 
 async def get_metadata(id, type='track'):
+    # Null metadata dict
     metadata = base_metadata.copy()
     if type == 'track':
         raw_meta = qobuz_api.get_track_url(id)
@@ -130,7 +131,6 @@ async def get_metadata(id, type='track'):
         if not q_meta["streamable"]:
             return None, None, lang.select.ERR_QOBUZ_NOT_STREAMABLE
 
-
     metadata['title'] = q_meta['title']
     metadata['artist'] = await get_artist(q_meta, type)
     try:
@@ -139,15 +139,21 @@ async def get_metadata(id, type='track'):
         metadata['totaltracks'] = q_meta['tracks_count']
         metadata['date'] = q_meta['release_date_original']
     except KeyError:
-         metadata['albumart'] = q_meta['album']['image']['large']
-         metadata['thumbnail'] = q_meta['album']['image']['thumbnail']
-         metadata['totaltracks'] = q_meta['album']['tracks_count']
-         metadata['date'] = q_meta['album']['release_date_original']
+        # Some track links may be recognised as album
+        metadata['albumart'] = q_meta['album']['image']['large']
+        metadata['thumbnail'] = q_meta['album']['image']['thumbnail']
+        metadata['totaltracks'] = q_meta['album']['tracks_count']
+        metadata['date'] = q_meta['album']['release_date_original']
     if type=='track':
+        # Track specific details
         metadata['isrc'] = q_meta['isrc']
+        metadata['tracknumber'] = q_meta['track_number']
+        metadata['album'] = q_meta['album']['title']
+        metadata['albumartist'] = await get_artist(q_meta, 'tAlbum')
+        metadata['copyright'] = q_meta['copyright']
+        metadata['genre'] = q_meta['album']['genre']['name']
     else:
         raw_meta = q_meta
-
     return metadata, raw_meta, None
 
 async def get_duration(path, ext, track_meta):
@@ -180,7 +186,7 @@ async def post_cover(meta, bot, update, r_id, u_name, quality=None):
 
 async def check_quality(raw_meta, type='track'):
     if int(qobuz_api.quality) == 5:
-        return 'mp3'
+        return 'mp3', '320K'
     if not type=='track':
         raw_meta = raw_meta["tracks"]["items"][0]
         new_track_dict = qobuz_api.get_track_url(raw_meta["id"])
@@ -210,9 +216,15 @@ async def get_artist(data, type):
                     item = item.replace(tag, '')
                 artists.append(item)
 
-        return ' '.join([str(artist) for artist in artists])
+        return ', '.join([str(artist) for artist in artists])
     elif type == 'album':
         return data['subtitle']
+    elif type == 'tAlbum':
+        # Getting album artist name from the track metadata itself
+        album_artist = []
+        for artist in data['album']['artists']:
+            album_artist.append(artist['name'])
+        return ', '.join([str(name) for name in album_artist])
 
 def smart_discography_filter(
     contents: list, save_space: bool = False, skip_extras: bool = False
