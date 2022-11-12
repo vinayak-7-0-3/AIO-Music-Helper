@@ -19,17 +19,19 @@ class Kkbox_Helper:
             pass
 
     async def getTrack(self, id, bot, update, r_id, u_name):
-        data = kkbox_api.get_songs([id])[0]
-        album_data = kkbox_api.get_album(data['album_id'])
-        await dlTrack(id, data, bot, update, r_id, album_data, u_name, 'track')
+        track_data = kkbox_api.get_songs([id])[0]
+        album_data = kkbox_api.get_album(track_data['album_id'])
+        metadata = await get_metadata(track_data, album_data, r_id)
+        await dlTrack(id, metadata, bot, update, r_id,  u_name, 'track')
 
     async def getAlbum(self, id, bot, update, r_id, u_name):
         post = True
-        data = kkbox_api.get_album(id)
+        album_data = kkbox_api.get_album(id)
         if post:
-            await postAlbumData(data, r_id, bot, update, u_name)
-        for track in data['songs']:
+            await postAlbumData(album_data, r_id, bot, update, u_name)
+        for track in album_data['songs']:
             track_data = kkbox_api.get_songs([track['encrypted_song_id']])[0]
-            await dlTrack(track['encrypted_song_id'], track_data, bot, update, r_id, data, type='album')
+            metadata = await get_metadata(track_data, album_data, r_id)
+            await dlTrack(track['encrypted_song_id'], metadata, bot, update, r_id,  u_name, 'album')
 
 kkbox = Kkbox_Helper()

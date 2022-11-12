@@ -32,15 +32,13 @@ class QobuzDL:
     async def startTrack(self, bot, update, item_id, r_id, u_name, album_meta=None, a_raw_meta=None, album=False):
         metadata, raw_meta, err = await get_metadata(item_id)
         ext, quality = await check_quality(raw_meta)
-        if ext:
-            metadata['extention'] = ext
         f_album_thumb = False
         if not album:
             type = 'track'
         else:
             type ='album'
         path = Config.DOWNLOAD_BASE_DIR + f"/qobuz/{r_id}/{metadata['title']}.{ext}"
-        metadata['extention'] = ext
+        metadata['extension'] = ext
         await download_track(bot, update, item_id, r_id, u_name, metadata, path, album_meta, f_album_thumb, type)
 
     async def startAlbum(self, item_id, r_id, u_name, bot=None, update=None):

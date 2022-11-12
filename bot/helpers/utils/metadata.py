@@ -1,5 +1,13 @@
+import os
+import aigpy
+
+from bot import LOGGER
 from mutagen import File
+from config import Config
+from mutagen.flac import FLAC
 from mutagen import flac, mp4
+from mutagen.mp3 import EasyMP3
+from mutagen.mp4 import MP4
 from mutagen.id3 import TALB, TCOP, TDRC, TIT2, TPE1, TRCK, APIC, TCON, TOPE, TSRC, USLT
 
 base_metadata = {
@@ -14,50 +22,19 @@ base_metadata = {
     'totaltracks': '',
     'albumart' : '',
     'thumbnail' : '',
-    'extention': '',
+    'extension': '',
     'duration': '',
     'copyright': '',
-    'genre': ''
+    'genre': '',
+    'provider': '',
+    'quality': ''
 }
 
-async def kkbox_metadata(audio_path, ext, data, album_data, album_art=None):
-    try:
-        artist = data['artist_role']['mainartists'] + data['artist_role']['featuredartists']
-        album_artist = data['artist_role']['mainartists'] + data['artist_role']['featuredartists']
-    except:
-        artist = data['artist_name']
-        album_artist = data['artist_name']
-    try:
-        album = data['album_name']
-    except:
-        album = None
-
-    totaltracks = 0
-    for songs in album_data['songs']:
-        totaltracks+=1
-
-    metadata = {
-        'title': data['song_name'],
-        'album': album,
-        'artist': artist,
-        'albumartist': album_artist,
-        'tracknumber': data['song_idx'],
-        'date': album_data['album']['album_date'],
-        'lyrics': '',
-        'isrc': '',
-        'totaltracks': totaltracks,
-        'albumart': album_art,
-        'thumbnail' : '',
-        'extention': ext,
-        'duration': '',
-        'copyright': '',
-        'genre': ''
-    }
-    await set_metadata(audio_path, metadata)
-
 async def set_metadata(audio_path, data):
-    ext = data['extention']
+    ext = data['extension']
     handle = File(audio_path)
+    if data['duration'] == '':
+        await get_duration(audio_path, data, ext)
     if ext == 'flac':
         await set_flac(data, handle)
     elif ext == 'm4a' or ext == 'mp4':
@@ -82,7 +59,7 @@ async def set_flac(data, handle):
     #handle.tags['composer'] = 
     handle.tags['isrc'] = data['isrc']
     handle.tags['lyrics'] = data['lyrics']
-    await savePic(handle, data['albumart'], data['extention'])
+    await savePic(handle, data)
     handle.save()
     return True
 
@@ -91,14 +68,14 @@ async def set_m4a(data, handle):
     handle.tags['\xa9alb'] = data['album']
     handle.tags['aART'] = data['albumartist']
     handle.tags['\xa9ART'] = data['artist']
-    #handle.tags['cprt'] = __tryStr__(self.copyright)
+    handle.tags['cprt'] = data['copyright']
     handle.tags['trkn'] = [[int(data['tracknumber']), int(data['totaltracks'])]]
     #handle.tags['disk'] = [[__tryInt__(self.discnumber), __tryInt__(self.totaldisc)]]
-    #handle.tags['\xa9gen'] = __tryStr__(self.genre)
+    handle.tags['\xa9gen'] = data['genre']
     handle.tags['\xa9day'] = data['date']
     #handle.tags['\xa9wrt'] = __tryList__(self.composer)
     handle.tags['\xa9lyr'] = data['lyrics']
-    await savePic(handle, data['albumart'], data['extention'])
+    await savePic(handle, data)
     handle.save()
     return True
 
@@ -117,22 +94,30 @@ async def set_mp3(data, handle):
     #handle.tags.add(TCOM(encoding=3, text=self.composer))
     handle.tags.add(TSRC(encoding=3, text=data['isrc']))
     handle.tags.add(USLT(encoding=3, lang=u'eng', desc=u'desc', text=data['lyrics']))
-    await savePic(handle, data['albumart'], data['extention'])
+    await savePic(handle, data)
     handle.save()
     return True
 
-async def savePic(handle, coverPath, ext):
+async def savePic(handle, metadata):
+    album_art = metadata['albumart']
+    ext = metadata['extension']
+
+    if not os.path.exists(album_art):
+        coverPath = Config.DOWNLOAD_BASE_DIR + f"/{metadata['provider']}/albumart/{metadata['album']}.jpg"
+        aigpy.net.downloadFile(album_art, coverPath)
+        album_art = coverPath
+
     try:
-        with open(coverPath, "rb") as f:
+        with open(album_art, "rb") as f:
             data = f.read()
-    except:
-        return None
+    except Exception as e:
+        LOGGER.warning(e)
+        return
 
     if ext == 'flac':
         pic = flac.Picture()
         pic.data = data
-        if '.jpg' in coverPath:
-            pic.mime = u"image/jpeg"
+        pic.mime = u"image/jpeg"
         handle.clear_pictures()
         handle.add_picture(pic)
 
@@ -142,6 +127,17 @@ async def savePic(handle, coverPath, ext):
     if ext == 'mp4' or ext == 'm4a':
         pic = mp4.MP4Cover(data)
         handle.tags['covr'] = [pic]
+    
+    os.remove(album_art)
+
+async def get_duration(path, data, ext):
+    if ext == 'mp3':
+        audio = EasyMP3(path)
+    elif ext == 'm4a':
+        audio = MP4(path)
+    elif ext == 'flac':
+        audio = FLAC(path)
+    data['duration'] = audio.info.length
     
 
 

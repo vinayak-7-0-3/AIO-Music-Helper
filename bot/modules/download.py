@@ -2,16 +2,17 @@ from bot import CMD, LOGGER
 from pyrogram import Client, filters
 
 from bot.helpers.translations import lang
+from bot.helpers.utils.clean import clean_up
 from bot.helpers.utils.check_link import check_link
-from bot.helpers.tidal_func.events import startTidal
 from bot.helpers.database.postgres_impl import user_settings
 from bot.helpers.utils.auth_check import check_id, checkLogins
 
-from bot.helpers.kkbox.kkbox_helper import kkbox
 from bot.helpers.qobuz.handler import qobuz
+from bot.helpers.kkbox.kkbox_helper import kkbox
+from bot.helpers.tidal_func.events import startTidal
 
 @Client.on_message(filters.command(CMD.DOWNLOAD))
-async def download_tidal(bot, update):
+async def download_track(bot, update):
     if await check_id(message=update):
         try:
             if update.reply_to_message:
@@ -55,7 +56,19 @@ async def download_tidal(bot, update):
                 elif provider == 'qobuz':
                     await qobuz.start(link, bot, update, reply_to_id, u_name)
                 user_settings.set_var(update.chat.id, "ON_TASK", False)
+                await bot.send_message(
+                    chat_id=update.chat.id,
+                    text=lang.select.TASK_COMPLETED,
+                    reply_to_message_id=update.id
+                )
             except Exception as e:
                 LOGGER.warning(e)
+                await bot.send_message(
+                    chat_id=update.chat.id,
+                    text=e,
+                    reply_to_message_id=update.id
+                )
                 user_settings.set_var(update.chat.id, "ON_TASK", False)
+
+            await clean_up(reply_to_id, provider)
             

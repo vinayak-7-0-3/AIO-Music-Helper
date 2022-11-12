@@ -103,8 +103,6 @@ async def download_track(bot, update, id, r_id, u_name, track_meta, path, album_
     thumb_path = path + f'_thumbnail.jpg'
     aigpy.net.downloadFile(track_meta['thumbnail'], thumb_path)
 
-    await get_duration(path, track_meta['extention'], track_meta)
-
     await bot.send_audio(
         chat_id=update.chat.id,
         audio=path,
@@ -152,17 +150,10 @@ async def get_metadata(id, type='track'):
         metadata['albumartist'] = await get_artist(q_meta, 'tAlbum')
         metadata['copyright'] = q_meta['copyright']
         metadata['genre'] = q_meta['album']['genre']['name']
+        metadata['provider'] = 'qobuz'
     else:
         raw_meta = q_meta
     return metadata, raw_meta, None
-
-async def get_duration(path, ext, track_meta):
-    if ext=='mp3':
-        audio = EasyMP3(path)
-    else:
-        audio = FLAC(path)
-    track_meta['duration'] = audio.info.length
-
 
 async def post_cover(meta, bot, update, r_id, u_name, quality=None):
     post_details = lang.select.QOBUZ_ALBUM_DETAILS.format(
@@ -186,7 +177,7 @@ async def post_cover(meta, bot, update, r_id, u_name, quality=None):
 
 async def check_quality(raw_meta, type='track'):
     if int(qobuz_api.quality) == 5:
-        return 'mp3', '320K'
+        return 'mp3', '320'
     if not type=='track':
         raw_meta = raw_meta["tracks"]["items"][0]
         new_track_dict = qobuz_api.get_track_url(raw_meta["id"])
