@@ -124,6 +124,8 @@ async def get_metadata(id, type='track'):
         raw_meta = qobuz_api.get_track_url(id)
         if "sample" not in raw_meta and raw_meta["sampling_rate"]:
             q_meta = qobuz_api.get_track_meta(id)
+        else:
+            return None, None, lang.select.ERR_QOBUZ_NOT_STREAMABLE
     elif type == 'album':
         q_meta = qobuz_api.get_album_meta(id)
         if not q_meta["streamable"]:
@@ -199,14 +201,18 @@ async def get_artist(data, type):
     if type == 'track':
         artists = []
         text = data['performers']
-        list = text.split(' - ')
-        to_remove = [', ComposerLyricist', ', FeaturedArtist', ', MainArtist', ', Vocal Producer', ', Vocal Engineer', ', AssociatedPerformer', ', StudioPersonnel', ', Producer']
-        for item in list:
-            if 'MainArtist' in item or 'FeaturedArtist' in item:
-                for tag in to_remove:
-                    item = item.replace(tag, '')
-                artists.append(item)
+        # From https://github.com/yarrm80s/orpheusdl-qobuz/blob/71cf98db48a11e0b4b72c3368ad22f27c119b1dd/interface.py#L57
+        for credit in text.split(' - '):
+            contributor_role = credit.split(', ')[1:]
+            contributor_name = credit.split(', ')[0]
 
+            for contributor in ['MainArtist', 'FeaturedArtist', 'Artist']:
+                if contributor in contributor_role:
+                    if contributor_name not in artists:
+                        artists.append(contributor_name)
+                    contributor_role.remove(contributor)
+            if not contributor_role:
+                continue
         return ', '.join([str(artist) for artist in artists])
     elif type == 'album':
         return data['subtitle']

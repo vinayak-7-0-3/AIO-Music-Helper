@@ -31,6 +31,12 @@ class QobuzDL:
 
     async def startTrack(self, bot, update, item_id, r_id, u_name, album_meta=None, a_raw_meta=None, album=False):
         metadata, raw_meta, err = await get_metadata(item_id)
+        if err:
+            return await bot.send_message(
+                chat_id=update.chat.id,
+                text=err,
+                reply_to_message_id=r_id
+            )
         ext, quality = await check_quality(raw_meta)
         f_album_thumb = False
         if not album:

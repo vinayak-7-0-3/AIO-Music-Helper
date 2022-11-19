@@ -131,7 +131,7 @@ async def dlTrack(id, metadata, bot, update, r_id, u_name=None, type=None):
 
     os.remove(metadata['thumbnail'])
     os.remove(audio_path)
-    os.rmdir(temp_path)
+    #os.rmdir(temp_path)
 
 async def get_metadata(track_data, album_data, r_id):
     metadata = base_metadata.copy()
