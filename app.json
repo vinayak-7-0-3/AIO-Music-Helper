@@ -1,0 +1,131 @@
+{
+  "name": "AioMusicBot-Dl",
+  "description": "Telegram AioMusicBot-Dl songs",
+  "keywords": [
+    "telegram",
+    "music",
+    "uploader"
+  ],
+  "website": "https://github.com/vinayak-7-0-3/AIO-Music-Helper",
+  "repository": "https://github.com/vinayak-7-0-3/AIO-Music-Helper",
+  "success_url": "https://github.com/vinayak-7-0-3/AIO-Music-Helper",
+  "env": {
+    "TG_BOT_TOKEN": {
+      "description": "Your Telegram bot token",
+      "value": "",
+      "required": true
+    },
+    "APP_ID": {
+      "description": "Your Telegram App ID",
+      "value": "",
+      "required": true
+    },
+    "API_HASH": {
+      "description": "Your Telegram App Hash",
+      "value": "",
+      "required": true
+    },
+    "AUTH_CHAT": {
+      "description": "Chats where the bot will work",
+      "value": "",
+      "required": true
+    },
+    "ADMINS": {
+      "description": "ID of Admins (ie SUDO Access)",
+      "value": "",
+      "required": true
+    },
+    "IS_BOT_PUBLIC": {
+      "description": "Want to allow public access to bot ? (True/False)",
+      "value": false,
+      "required": true
+    },
+    "AUTH_USERS": {
+      "description": "Users who can access the bot (needed only is bot set to private)",
+      "value": "",
+      "required": false
+    },
+    "WORK_DIR": {
+      "description": "Thumb/Icon for inline search",
+      "value": "./bot/",
+      "required": false
+    },
+    "DOWNLOADS_FOLDER": {
+      "description": "Download Folder",
+      "value": "DOWNLOADS",
+      "required": true
+    },
+    "MENTION_USERS": {
+      "description": "Limit number of search results",
+      "value": false,
+      "required": false
+    },
+    "BOT_USERNAME": {
+      "description": "Username of your bot (use with or without @)",
+      "value": "",
+      "required": true
+    },
+    "ENV": {
+      "description": "Ignore this XD",
+      "value": "YEMS YEMS",
+      "required": true
+    },
+    "ANIT_SPAM_MODE": {
+      "description": "Spam Mode",
+      "value": false,
+      "required": false
+    },
+    "TIDAL_TRACK_FORMAT": {
+      "description": "Track Format",
+      "value": "{TrackTitle} - {ArtistName}",
+      "required": false
+    },
+    "QOBUZ_EMAIL": {
+      "description": "Qobuz Mail",
+      "value": "",
+      "required": false
+    },
+    "QOBUZ_PASSWORD": {
+      "description": "Qobuz Pass",
+      "value": "",
+      "required": false
+    },
+    "QOBUZ_TRACK_FORMAT": {
+      "description": "Qobuz Track Format",
+      "value": "{tracknumber}. {tracktitle}",
+      "required": false
+    },
+    "KKBOX_KEY": {
+      "description": "KKBOX Mail",
+      "value": "",
+      "required": false
+    },
+    "KKBOX_EMAIL": {
+      "description": "KKBOX Pass",
+      "value": "",
+      "required": false
+    },
+    "KKBOX_PASSWORD": {
+      "description": "KKBOX Track Format",
+      "value": "",
+      "required": false
+    },
+    "DATABASE_URL": {
+      "description": "Elepqsql",
+      "value": "",
+      "required": false
+    }
+  },
+  "formation": {
+    "worker": {
+      "quantity": 1,
+      "size": "free"
+    }
+  },
+  
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ]
+}
