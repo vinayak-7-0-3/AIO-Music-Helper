@@ -1,0 +1,39 @@
+name: Manually Deploy to Heroku
+
+on: workflow_dispatch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: ${{secrets.HEROKU_APP_NAME}}
+          heroku_email: ${{secrets.HEROKU_EMAIL}}
+          usedocker: true
+          docker_heroku_process_type: worker
+          stack: "container"
+          region: "eu"
+        env:
+          HD_ADMINS: ${{secrets.ADMINS}}
+          HD_API_HASH: ${{secrets.API_HASH}}
+          HD_APP_ID: ${{secrets.APP_ID}}
+          HD_BOT_USERNAME: ${{secrets.BOT_USERNAME}}
+          HD_DATABASE_URL: ${{secrets.DATABASE_URL}}
+          HD_DOWNLOADS_FOLDER: ${{secrets.DOWNLOADS_FOLDER}}
+          HD_ENV: ${{secrets.ENV}}
+          HD_IS_BOT_PUBLIC: ${{secrets.IS_BOT_PUBLIC}}
+          HD_QOBUZ_TRACK_FORMAT: ${{secrets.QOBUZ_TRACK_FORMAT}}
+          HD_TG_BOT_TOKEN: ${{secrets.TG_BOT_TOKEN}}
+          HD_TIDAL_TRACK_FORMAT: ${{secrets.TIDAL_TRACK_FORMAT}}
+          HD_QOBUZ_EMAIL: ${{secrets.QOBUZ_EMAIL}}
+          HD_QOBUZ_PASSWORD: ${{secrets.QOBUZ_PASSWORD}}
+          HD_KKBOX_EMAIL: ${{secrets.KKBOX_EMAIL}}
+          HD_KKBOX_PASSWORD: ${{secrets.KKBOX_PASSWORD}}
+          HD_WORK_DIR: ${{secrets.WORK_DIR}}
+          HD_AUTH_CHAT: ${{secrets.AUTH_CHAT}}
+          HD_AUTH_USERS: ${{secrets.AUTH_USERS}}
+          HD_ANIT_SPAM_MODE: ${{secrets.ANIT_SPAM_MODE}}
+          HD_KKBOX_KEY: ${{secrets.KKBOX_KEY}}
