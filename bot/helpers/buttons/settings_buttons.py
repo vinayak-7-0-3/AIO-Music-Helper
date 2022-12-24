@@ -166,6 +166,33 @@ def quality_buttons(provider, data=None):
                 )
             ]
             )
+    elif provider == 'qobuz':
+        inline_keyboard = [
+            [
+                InlineKeyboardButton(
+                    text=lang.select.Q_320,
+                    callback_data="SQA_qobuz_5"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=lang.select.Q_LOSELESS,
+                    callback_data="SQA_qobuz_6"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=lang.select.Q_HIRES_7,
+                    callback_data="SQA_qobuz_7"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=lang.select.Q_HIRES_27,
+                    callback_data="SQA_qobuz_27"
+                )
+            ]
+        ]
     inline_keyboard = inline_keyboard + exit_button
     return InlineKeyboardMarkup(inline_keyboard)
 
@@ -175,6 +202,18 @@ def kkbox_menu_set():
             InlineKeyboardButton(
                 text=lang.select.QUALITY_BUTTON,
                 callback_data="QA_kkbox"
+            )
+        ]
+    ]
+    inline_keyboard = inline_keyboard + exit_button
+    return InlineKeyboardMarkup(inline_keyboard)
+
+def qobuz_menu_set():
+    inline_keyboard = [
+        [
+            InlineKeyboardButton(
+                text=lang.select.QUALITY_BUTTON,
+                callback_data="QA_qobuz"
             )
         ]
     ]

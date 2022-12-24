@@ -1,17 +1,13 @@
 import os
 import re
 import aigpy
-import requests
 
-from mutagen.flac import FLAC
-from mutagen.mp3 import EasyMP3
-from pathvalidate import sanitize_filename
+from config import Config
 
 from bot import LOGGER
 from bot.helpers.qobuz.qopy import qobuz_api
 from bot.helpers.translations import lang
 from bot.helpers.utils.metadata import base_metadata, set_metadata
-from config import Config
 
 QL_DOWNGRADE = "FormatRestrictedByFormatAvailability"
 
@@ -300,3 +296,13 @@ def create_and_return_dir(directory):
     fix = os.path.normpath(directory)
     os.makedirs(fix, exist_ok=True)
     return 
+
+async def human_quality(data):
+    if data == 5:
+        return lang.select.Q_320
+    elif data == 6:
+        return lang.select.Q_LOSELESS
+    elif data == 7:
+        return lang.select.Q_HIRES_7
+    else:
+        return lang.select.Q_HIRES_27
