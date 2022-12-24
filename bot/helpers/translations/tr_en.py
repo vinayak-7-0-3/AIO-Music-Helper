@@ -9,7 +9,7 @@ class EN(object):
     WELCOME_MSG = "Hello {} Sir"
     START_DOWNLOAD = "Starting to download..........."
     ANTI_SPAM_WAIT = "Wait for the current task to complete!"
-    TASK_COMPLETED = "Download Finished"
+    TASK_COMPLETED = "Download Finished"    
 
 
 
@@ -102,16 +102,27 @@ API Key Valid : <code>{2}</code>
 <b>RELOGIN NEEDED AFTER CHANGING API PLATFORM</b>
 """
     #
-    # KKBOXPANEL
+    # KKBOX PANEL
     #
     KKBOX_SETTINGS_PANEL = """
-<b>Configure Tidal Settings Here</b>
+<b>Configure KKBOX Settings Here</b>
 
 <b><u>CURRENT SETTINGS</u></b>
 
 <b>Quality : </b><code>{0}</code>
 <b>Auth Status : </b><code>{1}</code>
 """
+    #
+    # QOBUZ PANEL
+    #
+    QOBUZ_SETTINGS_PANEL = """
+<b>Configure Qobuz Settings Here</b>
+
+<b><u>CURRENT SETTINGS</u></b>
+
+<b>Quality : </b><code>{0}</code>
+<b>Auth Status : </b><code>{1}</code>
+    """
 
     
 
@@ -144,7 +155,11 @@ API Key Valid : <code>{2}</code>
     HIFI_QUALITY = "HiFi"
     HIGH_QUALITY = "High"
     NORMAL_QUALITY = "Normal"
-
+    # QOBUZ_QUALIY
+    Q_LOSELESS = "LOSELESS"
+    Q_320 = "320K"
+    Q_HIRES_7 = "HiRes =< 96"
+    Q_HIRES_27 = "HiRes > 96"
 
 
 #----------------
@@ -154,3 +169,4 @@ API Key Valid : <code>{2}</code>
 #----------------
     # QOBUZ
     ERR_QOBUZ_NOT_STREAMABLE = "This album is not available to download."
+    ERR_NO_LINK = "No link provided to download from"

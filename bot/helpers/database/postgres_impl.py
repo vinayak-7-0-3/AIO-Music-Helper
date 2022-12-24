@@ -11,15 +11,16 @@ from bot import Config
 """
 SETTINGS VARS
 
-TIDAL_AUTH_TOKEN - Tidal main auth token
+TIDAL_AUTH_TOKEN - Tidal main auth token (BLOB)
 TIDAL_AUTH_DONE - Status of Tidal Session (True/False)
-TIDAL_API_KEY_INDEX - Index of API Key Selected
-TIDAL_QUALITY - Music quality
+TIDAL_API_KEY_INDEX - Index of API Key Selected (INT)
+TIDAL_QUALITY - Music quality (Normal/High/HiFi/Master)
 
 KKBOX_QUALITY - Quality Of KKBOX Tracks (128k, 192k, 320k, hifi, hires)
 KKBOX_AUTH - Status of KKBOX Authentication (True/False)
 
 QOBUZ_AUTH - Status of QOBUZ Authentication (True/False)
+QOBUZ_QUALITY - Quality of QOBUZ Tracks (5 - 320k, 6 - Loseless, 7 - HiRes, 27 - HiRes>96)
 
 AUTH_CHATS - Chats where bot is allowed
 AUTH_USERS - Users who can use bot

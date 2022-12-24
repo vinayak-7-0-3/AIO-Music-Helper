@@ -6,7 +6,9 @@ from pyrogram.errors import MessageNotModified
 import bot.helpers.tidal_func.apikey as tidalAPI
 
 from bot.helpers.translations import lang
+from bot.helpers.qobuz.qopy import qobuz_api
 from bot.helpers.kkbox.kkapi import kkbox_api
+from bot.helpers.qobuz.utils import human_quality
 from bot.helpers.buttons.settings_buttons import *
 from bot.helpers.database.postgres_impl import set_db
 from bot.helpers.tidal_func.settings import TIDAL_SETTINGS
@@ -58,6 +60,23 @@ async def kkbox_panel_cb(bot, update):
                 auth
             ),
             reply_markup=kkbox_menu_set()
+        )
+
+# QOBUZ SETTINGS PANEL
+@Client.on_callback_query(filters.regex(pattern=r"^qobuzPanel"))
+async def qobuz_panel_cb(bot, update):
+    if await check_id(update.from_user.id, restricted=True):
+        quality, _ = set_db.get_variable("QOBUZ_QUALITY")
+        quality = await human_quality(int(quality))
+        auth, _ = set_db.get_variable("QOBUZ_AUTH")
+        await bot.edit_message_text(
+            chat_id=update.message.chat.id,
+            message_id=update.message.id,
+            text=lang.select.QOBUZ_SETTINGS_PANEL.format(
+                quality,
+                auth
+            ),
+            reply_markup=qobuz_menu_set()
         )
 
 
@@ -159,7 +178,9 @@ async def quality_cb(bot, update):
         elif provider == 'kkbox':
             current_quality, _ = set_db.get_variable("KKBOX_QUALITY")
             data  = kkbox_api.available_qualities
-
+        elif provider == 'qobuz':
+            _quality, _ = set_db.get_variable("QOBUZ_QUALITY")
+            current_quality = await human_quality(int(_quality))
         await bot.edit_message_text(
             chat_id=update.message.chat.id,
             message_id=update.message.id,
@@ -184,6 +205,10 @@ async def set_quality_cb(bot, update):
             set_db.set_variable("KKBOX_QUALITY", quality, False, None)
             current_quality = quality
             data = kkbox_api.available_qualities
+        elif provider == 'qobuz':
+            set_db.set_variable("QOBUZ_QUALITY", quality, False, None)
+            qobuz_api.quality = int(quality)
+            current_quality = await human_quality(int(quality))
         try:
             await bot.edit_message_text(
                 chat_id=update.message.chat.id,

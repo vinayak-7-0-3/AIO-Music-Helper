@@ -22,8 +22,12 @@ async def download_track(bot, update):
                 link = update.text.split(" ", maxsplit=1)[1]
                 reply_to_id = update.id
         except:
-            link = None
-
+            return await bot.send_message(
+                chat_id=update.chat.id,
+                text=lang.select.ERR_NO_LINK,
+                reply_to_message_id=update.id
+            )
+            
         if link:
             provider = await check_link(link)
             if provider:

@@ -19,13 +19,17 @@ logger = logging.getLogger(__name__)
 
 class Client:
     def __init__(self):
+        quality, _ = set_db.get_variable("QOBUZ_QUALITY")
+        if not quality:
+            set_db.set_variable("QOBUZ_QUALITY", 6, False, None)
+            quality = 6
         self.id = None
         self.secrets = None
         self.session = requests.Session()
         self.base = "https://www.qobuz.com/api.json/0.2/"
         self.sec = None
 
-        self.quality = 6
+        self.quality = int(quality)
         
 
     def api_call(self, epoint, **kwargs):
@@ -223,5 +227,6 @@ class Client:
         )
         self.auth(Config.QOBUZ_EMAIL, Config.QOBUZ_PASSWORD)
         self.cfg_setup()
+        set_db.set_variable("QOBUZ_AUTH", True, False, None)
 
 qobuz_api = Client()
