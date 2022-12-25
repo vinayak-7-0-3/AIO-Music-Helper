@@ -82,6 +82,16 @@ class Config(object):
     QOBUZ_EMAIL = getenv("QOBUZ_EMAIL", "")
     QOBUZ_PASSWORD = getenv("QOBUZ_PASSWORD", "")
     QOBUZ_TRACK_FORMAT = getenv("QOBUZ_TRACK_FORMAT", "{tracknumber}. {tracktitle}")
+#--------------------
+
+# DEEZER VARIABLES
+
+#--------------------
+    DEEZER_EMAIL = getenv("DEEZER_EMAIL", "")
+    DEEZER_PASSWORD = getenv("DEEZER_PASSWORD", "")
+    DEEZER_BF_SECRET = getenv("DEEZER_BF_SECRET", "")
+    DEEZER_TRACK_URL_KEY = getenv("DEEZER_TRACK_URL_KEY", "")
+    DEEZER_ARL = getenv("DEEZER_ARL", "")
 
 
     if BOT_USERNAME.startswith("@"):

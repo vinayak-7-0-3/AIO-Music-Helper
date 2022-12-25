@@ -28,6 +28,10 @@ class EN(object):
     TIDAL_ALREADY_AUTH = "Your authentication is already done.\nIts is valid for {}"
     # KKBOX
     KKBOX_NOT_AUTH = "KKBOX account credentials not given or subcription expired"
+    # DEEZER
+    DEEZER_NOT_AUTH = "Deezer credentials not provided"
+    # QOBUZ
+    QOBUZ_NOT_AUTH = "Qobuz credentials not provided"
 
 
 
@@ -64,7 +68,17 @@ class EN(object):
 📀 <b>Number of Tracks :</b> {3}
 """
 
-    QOBUZ_ALBUM_QUALITY_ADDON = "💫 <b>Quality :</b> {}k \n"
+    
+    # DEEZER
+    DEEZER_ALBUM_DETAILS = """
+🎶 <b>Title :</b> {0}
+👤 <b>Artist :</b> {1}
+📅 <b>Release Date :</b> {2}
+🕒 <b>Duration :</b> {3}min
+🔢 <b>Disc Number :</b> {4}
+"""
+
+    QUALITY_ADDON = "💫 <b>Quality :</b> {} \n"
 
     
 

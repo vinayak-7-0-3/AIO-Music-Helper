@@ -20,6 +20,7 @@ base_metadata = {
     'lyrics': '',
     'isrc': '',
     'totaltracks': '',
+    'volume' : '',
     'albumart' : '',
     'thumbnail' : '',
     'extension': '',

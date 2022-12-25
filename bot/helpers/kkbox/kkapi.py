@@ -1,5 +1,4 @@
 import json
-import requests
 
 from bot import LOGGER
 from config import Config
@@ -7,10 +6,9 @@ from random import randrange
 from time import time, sleep
 from Cryptodome.Hash import MD5
 from Cryptodome.Cipher import ARC4
-from urllib3.util.retry import Retry
-from requests.adapters import HTTPAdapter
 
 from bot.helpers.database.postgres_impl import set_db
+from bot.helpers.utils.common import create_requests_session
 
 class KkboxAPI:
     def __init__(self, kc1_key):
@@ -242,11 +240,11 @@ class KkboxAPI:
                 f.write(rc4.decrypt(chunk))
 
 
-def create_requests_session():
+"""def create_requests_session():
     session_ = requests.Session()
     retries = Retry(total=10, backoff_factor=0.4, status_forcelist=[429, 500, 502, 503, 504])
     session_.mount('http://', HTTPAdapter(max_retries=retries))
     session_.mount('https://', HTTPAdapter(max_retries=retries))
-    return session_
+    return session_"""
 
 kkbox_api = KkboxAPI(Config.KKBOX_KEY)

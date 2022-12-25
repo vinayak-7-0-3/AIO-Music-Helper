@@ -1,5 +1,5 @@
-from bot import CMD
-from config import LOGGER
+from config import Config
+from bot import CMD, LOGGER
 from pyrogram import Client, filters
 from pyrogram.errors import MessageNotModified
 
@@ -79,6 +79,15 @@ async def qobuz_panel_cb(bot, update):
             reply_markup=qobuz_menu_set()
         )
 
+# DEEZER SETTINGS PANEL
+@Client.on_callback_query(filters.regex(pattern=r"^deezerPanel"))
+async def deezer_panel_cb(bot, update):
+    if await check_id(update.from_user.id, restricted=True):
+        quality, _ = set_db.get_variable("DEEZER_QUALITY")
+        quality = quality.replace('_', " - ")
+        auth, _ = set_db.get_variable("DEEZER_AUTH")
+        auth_by = 'By ARL' if Config.DEEZER_ARL != "" else 'By Creds'
+        
 
 # API SETTINGS FOR TIDAL-DL
 @Client.on_callback_query(filters.regex(pattern=r"^apiTidal"))
