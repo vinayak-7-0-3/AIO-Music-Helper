@@ -39,8 +39,10 @@ class DeezerDL:
         type, id = self.url_parse(url)
         if type == 'track':
             await self.getTrack(id, bot, update, r_id, u_name)
+        if type == 'album':
+            await self.getAlbum(id, bot, update, r_id, u_name) 
 
-    async def getTrack(self, track_id, bot, update, r_id, u_name):
+    async def getTrack(self, track_id, bot, update, r_id, u_name, isalbum=False):
         is_user_upped = int(track_id) < 0
 
         if not is_user_upped:
@@ -48,7 +50,7 @@ class DeezerDL:
             track_data = track_data['DATA']
             if 'FALLBACK' in track_data:
                 track_data = track_data['FALLBACK']
-            q_tier = 'FLAC'
+            q_tier = 'MP3_128'
         else:
             track_data = deezerapi.get_track_data(track_id)
             if 'FALLBACK' in track_data:
@@ -58,13 +60,24 @@ class DeezerDL:
         if q_tier not in deezerapi.available_formats:
             raise Exception("Selected Deezer Quality not available on you account")
 
+        metadata = await self.get_metadata(track_data, q_tier)
+        await self.dlTrack(track_data, q_tier, metadata, bot, update, r_id, u_name, isalbum)
+        #await self.post_details(metadata, bot, update, r_id, u_name)
+        
+    async def getAlbum(self, album_id, bot, update, r_id, u_name):
+        data = deezerapi.get_album(album_id)
+        album_data = data['DATA']
+        track_data = data['SONGS']['data']
+        q_tier = 'FLAC'
+        a_meta = await self.get_metadata(album_data, q_tier, 'album', track_data)
+        
+        await self.post_details(a_meta, bot, update, r_id, u_name)
+        
+        for track in track_data:
+            await self.getTrack(track['SNG_ID'], bot, update, r_id, u_name, True)
         
 
-        metadata = await self.get_metadata(track_id, track_data, q_tier)
-        await self.dlTrack(track_data, q_tier, metadata, bot, update, r_id, u_name)
-        #await self.post_details(metadata, bot, update, r_id, u_name)
-
-    async def dlTrack(self, t_data, q_tier, metadata, bot, update, r_id, u_name, type='track'):
+    async def dlTrack(self, t_data, q_tier, metadata, bot, update, r_id, u_name, isalbum):
         if q_tier in ('MP3_320', 'FLAC'):
             url = deezerapi.get_track_url(t_data['SNG_ID'], t_data['TRACK_TOKEN'], t_data['TRACK_TOKEN_EXPIRE'], q_tier)
         else:
@@ -81,7 +94,7 @@ class DeezerDL:
 
         await set_metadata(filepath, metadata)
 
-        if type == 'track' and Config.MENTION_USERS == "True":
+        if not isalbum and Config.MENTION_USERS == "True":
             text = lang.select.USER_MENTION_TRACK.format(u_name)
         else:
             text = None
@@ -129,24 +142,35 @@ class DeezerDL:
             quality = 'FLAC'
         return ext, quality
 
-    async def get_metadata(self, id, t_data, q_tier, type='track'):
+    async def get_metadata(self, data, q_tier, type='track', t_data=None):
         metadata = base_metadata.copy()
-        metadata['title'] = t_data['SNG_TITLE']
-        metadata['album'] = t_data['ALB_TITLE']
-        metadata['artist'] = await self.get_artists(t_data)
-        metadata['albumartist'] = t_data['ART_NAME']
-        metadata['tracknumber'] = t_data['TRACK_NUMBER']
-        metadata['volume'] = t_data['DISK_NUMBER']
-        metadata['date'] = t_data['PHYSICAL_RELEASE_DATE']
-        metadata['isrc'] = t_data['ISRC']
-        metadata['albumart'] = await self.get_image_url(t_data['ALB_PICTURE'], 'art')
-        metadata['thumbnail'] = await self.get_image_url(t_data['ALB_PICTURE'], 'thumb')
-        metadata['duration'] = int(t_data['DURATION'])
-        metadata['copyright'] = t_data['COPYRIGHT']
-        metadata['provider'] = 'deezer'
-        ext, quality = await self.parse_quality(q_tier)
-        metadata['extension'] = ext
-        metadata['quality'] = quality
+        if type == 'track':
+            metadata = base_metadata.copy()
+            metadata['title'] = data['SNG_TITLE']
+            metadata['album'] = data['ALB_TITLE']
+            metadata['artist'] = await self.get_artists(data)
+            metadata['albumartist'] = data['ART_NAME']
+            metadata['tracknumber'] = data.get('TRACK_NUMBER')
+            metadata['volume'] = data.get('DISK_NUMBER')
+            metadata['date'] = data.get('PHYSICAL_RELEASE_DATE')
+            metadata['isrc'] = data['ISRC']
+            metadata['albumart'] = await self.get_image_url(data['ALB_PICTURE'], 'art')
+            metadata['thumbnail'] = await self.get_image_url(data['ALB_PICTURE'], 'thumb')
+            metadata['duration'] = int(data['DURATION'])
+            metadata['copyright'] = data.get('COPYRIGHT')
+            metadata['provider'] = 'deezer'
+            metadata['extension'], metadata['quality'] = await self.parse_quality(q_tier)
+        elif type == 'album':
+            metadata['title'] = data['ALB_TITLE']
+            metadata['artist'] = data['ART_NAME']
+            metadata['date'] = data.get('ORIGINAL_RELEASE_DATE') or data['PHYSICAL_RELEASE_DATE']
+            try:
+                metadata['totaltracks'] = int(t_data[-1]['TRACK_NUMBER'])
+            except:
+                pass
+            metadata['albumart'] = await self.get_image_url(data['ALB_PICTURE'], 'art')
+            _, metadata['quality'] = await self.parse_quality(q_tier)
+            metadata['provider'] = 'deezer'
         return metadata
 
     async def get_artists(self, data):
@@ -173,8 +197,7 @@ class DeezerDL:
             metadata['title'],
             metadata['artist'],
             metadata['date'],
-            metadata['duration'],
-            metadata['volume']
+            metadata['totaltracks']
         )
         quality = metadata['quality']
         if quality != '':

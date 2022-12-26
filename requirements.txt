@@ -7,7 +7,6 @@ aigpy
 python-dotenv
 lyricsgenius
 pydub
-PyQt5
 qt-material
 pycryptodomex
 Pillow

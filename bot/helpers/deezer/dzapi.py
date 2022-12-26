@@ -217,5 +217,14 @@ class DeezerAPI:
             return False
         else:
             return True
+            
+    def get_album(self, id):
+        try:
+            return self._api_call('deezer.pageAlbum', {'alb_id': id, 'lang': self.language})
+        except APIError as e:
+            if e.payload:
+                return self._api_call('deezer.pageAlbum', {'alb_id': e.payload['FALLBACK']['ALB_ID'], 'lang': self.language})
+            else:
+                raise e
 
 deezerapi = DeezerAPI()

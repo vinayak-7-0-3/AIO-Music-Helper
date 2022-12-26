@@ -74,8 +74,7 @@ class EN(object):
 🎶 <b>Title :</b> {0}
 👤 <b>Artist :</b> {1}
 📅 <b>Release Date :</b> {2}
-🕒 <b>Duration :</b> {3}min
-🔢 <b>Disc Number :</b> {4}
+🔢 <b>Total Tracks :</b> {3}
 """
 
     QUALITY_ADDON = "💫 <b>Quality :</b> {} \n"
