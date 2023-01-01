@@ -15,37 +15,31 @@ def main_menu_set():
             InlineKeyboardButton(
                 text=lang.select.TG_AUTH_BUTTON,
                 callback_data="tgPanel"
-            )
-        ],
-        [
+            ),
             InlineKeyboardButton(
                 text=lang.select.TIDAL_BUTTON,
                 callback_data="tidalPanel"
-            )
+            )            
         ],
         [
             InlineKeyboardButton(
                 text=lang.select.KKBOX_BUTTON,
                 callback_data="kkboxPanel"
-            )
-        ],
-        [
+            ),
             InlineKeyboardButton(
                 text=lang.select.QOBUZ_BUTTON,
                 callback_data="qobuzPanel"
-            )
+            )            
         ],
         [
             InlineKeyboardButton(
                 text=lang.select.DEEZER_BUTTON,
                 callback_data="deezerPanel"
-            )
-        ],
-        [
+            ),
             InlineKeyboardButton(
                 text=lang.select.SOUNDCLOUD_BUTTON,
                 callback_data="scPanel"
-            )
+            )            
         ],
         [
             InlineKeyboardButton(
