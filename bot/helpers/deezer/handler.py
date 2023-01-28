@@ -18,18 +18,19 @@ class DeezerDL:
 #=================================
     async def login(self, with_arl=False):
         # LOGIN WITH ARL IF GIVEN
-        if with_arl:
+        """if with_arl:
             arl = Config.DEEZER_ARL
             LOGGER.info('Trying to login to Deezer with ARL given')
         else:
             # CHECK FOR SAVED ARL WITH USER CREDS
             arl, _ = set_db.get_variable("DEEZER_ARL")
-            LOGGER.info('Found a saved Deezer ARL. Trying to login')
-        if arl:
+            LOGGER.info('Found a saved Deezer ARL. Trying to login')"""
+        if with_arl:
+            arl = Config.DEEZER_ARL
             deezerapi.login_via_arl(arl)
         else:
             arl, _ = deezerapi.login_via_email(Config.DEEZER_EMAIL, Config.DEEZER_PASSWORD)
-            set_db.set_variable("DEEZER_ARL", arl, False, None)
+            #set_db.set_variable("DEEZER_ARL", arl, False, None)
         LOGGER.info('Loaded DEEZER Successfully')
 
 #=================================

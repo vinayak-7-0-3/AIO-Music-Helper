@@ -22,7 +22,7 @@ KKBOX_AUTH - Status of KKBOX Authentication (True/False)
 QOBUZ_AUTH - Status of QOBUZ Authentication (True/False)
 QOBUZ_QUALITY - Quality of QOBUZ Tracks (5 - 320k, 6 - Loseless, 7 - HiRes, 27 - HiRes>96)
 
-DEEZER_ARL - ARL of Deezer Client
+-x- DEEZER_ARL - ARL of Deezer Client (Deprecated)
 DEEZER_AUTH - Status of Deezer Authentication (True/False)
 DEEZER_QUALITY - Quality Of DEEZER Tracks ()
 DEEZER_SPATIAL - Prefer 360RA in FLAC (True/False)

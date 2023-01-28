@@ -120,6 +120,8 @@ class Client:
         usr_info = self.api_call("user/login", email=email, pwd=pwd)
         if not usr_info["user"]["credential"]["parameters"]:
             LOGGER.warning("Free accounts are not eligible to download tracks from QOBUZ. Disabling QOBUZ for now")
+            set_db.set_variable("QOBUZ_AUTH", False, False, None)
+            return
         self.uat = usr_info["user_auth_token"]
         self.session.headers.update({"X-User-Auth-Token": self.uat})
         self.label = usr_info["user"]["credential"]["parameters"]["short_label"]
