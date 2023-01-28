@@ -1,0 +1,160 @@
+{
+  "name": "Aio-Dl Bot",
+  "description": "Telegram bot to download qobuz-tidal-deezer-kkbox platform",
+  "keywords": [
+    "telegram",
+    "music",
+    "uploader"
+  ],
+  "website": "https://github.com/vinayak-7-0-3/AIO-Music-Helper",
+  "repository": "https://github.com/vinayak-7-0-3/AIO-Music-Helper",
+  "success_url": "https://github.com/vinayak-7-0-3/AIO-Music-Helper",
+  "env": {
+    "TG_BOT_TOKEN": {
+      "description": "Your Telegram bot token",
+      "value": "",
+      "required": true
+    },
+    "APP_ID": {
+      "description": "Your Telegram App ID",
+      "value": "",
+      "required": true
+    },
+    "API_HASH": {
+      "description": "Your Telegram App Hash",
+      "value": "",
+      "required": true
+    },
+    "AUTH_CHAT": {
+      "description": "Chats where the bot will work",
+      "value": "",
+      "required": false
+    },
+    "ADMINS": {
+      "description": "ID of Admins (ie SUDO Access)",
+      "value": "",
+      "required": true
+    },
+    "IS_BOT_PUBLIC": {
+      "description": "Want to allow public access to bot ? (True/False)",
+      "value": "False",
+      "required": true
+    },
+    "AUTH_USERS": {
+      "description": "Users who can access the bot (needed only is bot set to private)",
+      "value": "",
+      "required": false
+    },
+    "BOT_USERNAME": {
+      "description": "Username of your bot (use with or without @)",
+      "value": "",
+      "required": true
+    },    
+	"DEEZER_BF_SECRET": {
+      "description": "Deezer Api bf-Secret",
+      "value": "g4el58wc0zvf9na1",
+      "required": true
+    },    
+	"DEEZER_TRACK_URL_KEY": {
+      "description": "Deezer Api track url key",
+      "value": "jo6aey6haid2Teih",
+      "required": true
+    },    
+	"DEEZER_EMAIL": {
+      "description": "Deezer Email",
+      "value": "",
+      "required": false
+    },	
+	"DEEZER_PASSWORD": {
+      "description": "Deezer Pass",
+      "value": "",
+      "required": false
+    },	
+	"DOWNLOADS_FOLDER": {
+      "description": "Downloader folder",
+      "value": "DOWNLOADS",
+      "required": true
+    },	
+	"QOBUZ_EMAIL": {
+      "description": "Username of your bot (use with or without @)",
+      "value": "",
+      "required": false
+    },	
+	"QOBUZ_PASSWORD": {
+      "description": "Username of your bot (use with or without @)",
+      "value": "",
+      "required": false
+    },	
+        "DEEZER_ARL": {
+      "description": "Deezer Arl Token",
+      "value": "",
+      "required": false
+    },	
+	"QOBUZ_TRACK_FORMAT": {
+      "description": "Qobuz Track Format",
+      "value": "{tracknumber}. {tracktitle}",
+      "required": true
+    },	
+	"TIDAL_TRACK_FORMAT": {
+      "description": "Tidal Track Format",
+      "value": "{TrackTitle} - {ArtistName}",
+      "required": true
+    },	
+	"WORK_DIR": {
+      "description": "Workdir",
+      "value": "./bot/",
+      "required": true
+    },	
+	"KKBOX_KEY": {
+      "description": "KKBOX Api-Key: 7f1a68f00b747f4ac1469c72e7ef492c ",
+      "value": "",
+      "required": false
+    },	
+	"KKBOX_EMAIL": {
+      "description": "KKBOX Email",
+      "value": "",
+      "required": false
+    },	
+	"KKBOX_PASSWORD": {
+      "description": "KKBOX Password",
+      "value": "",
+      "required": false
+    },	
+	"MENTION_USERS": {
+      "description": "Mention Users",
+      "value": "",
+      "required": false
+    },	
+	"ANIT_SPAM_MODE": {
+      "description": "Anti-spam Mode",
+      "value": "",
+      "required": false
+    },	
+	"BOT_LANGUAGE": {
+      "description": "Bot Language",
+      "value": "",
+      "required": false
+    },
+    "ENV": {
+      "description": "Ignore this XD",
+      "value": "YEMS YEMS",
+      "required": true
+    }
+  },
+  "formation": {
+    "worker": {
+      "quantity": 1,
+      "size": "eco"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql"
+    }
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ]
+}
