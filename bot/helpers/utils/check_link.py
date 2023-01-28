@@ -1,5 +1,5 @@
 tidal = ["https://tidal.com", "https://listen.tidal.com", "tidal.com", "listen.tidal.com"]
-deezer = ["https://deezer.page.link", "https://deezer.com", "deezer.com", "https://www.deezer.com"]
+deezer = ["https://deezer.page.link", "https://deezer.com", "deezer.com", "https://www.deezer.com", "http://www.deezer.com"]
 qobuz = ["https://play.qobuz.com", "https://open.qobuz.com", "https://www.qobuz.com"]
 sc = []
 kkbox = ["https://www.kkbox.com"]
