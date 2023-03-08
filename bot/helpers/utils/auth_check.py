@@ -99,7 +99,7 @@ async def checkLogins(provider):
         else:
             return True, msg
     elif provider == "qobuz":
-        auth, _ = set_db.get_variable("DEEZER_AUTH")
+        auth, _ = set_db.get_variable("QOBUZ_AUTH")
         if not auth:
             return True, lang.select.QOBUZ_NOT_AUTH
         return False, None

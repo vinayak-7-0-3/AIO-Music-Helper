@@ -55,42 +55,36 @@ class KkboxAPI:
         resp = json.loads(self.kc1_decrypt(r.content)) if r.content else None
         return resp
 
-    def login(self, region_bypass=False):
+    def login(self):
         email = Config.KKBOX_EMAIL
         password = Config.KKBOX_PASSWORD
         md5 = MD5.new()
         md5.update(password.encode('utf-8'))
         pswd = md5.hexdigest()
 
-        host = 'login' if not region_bypass else 'login-utapass'
-
-        resp = self.api_call(host, 'login.php', payload={
+        resp = self.api_call('login', 'login.php', payload={
             'uid': email,
             'passwd': pswd,
             'kkid': self.kkid,
             'registration_id': '',
         })
 
-        if not resp and region_bypass:
-            LOGGER.warning('KKBOX Account expired')
-
-        if resp['status'] not in (2, 3, -4):
+        if resp['status'] not in (2, 3):
             if resp['status'] == -1:
                 LOGGER.warning('Incorrect Email Provided For KKBOX')
                 exit(1)
             elif resp['status'] == -2:
                 LOGGER.warning('Incorrect Password Provided For KKBOX')
                 exit(1)
+            elif resp['status'] == -4:
+                LOGGER.warning('IP address is in unsupported region for KKBOX, use a VPN')
+                set_db.set_variable("KKBOX_AUTH", False, False, None)
+                return
             elif resp['status'] == 1:
                 LOGGER.warning('KKBOX Account expired')
                 set_db.set_variable("KKBOX_AUTH", False, False, None)
+                return
             LOGGER.warning('Login failed')
-
-        if resp['status'] == -4 and not region_bypass:
-            # region locked, need to call different login host
-            return self.login(region_bypass=True)
-
-        self.region_bypass = region_bypass
 
         self.apply_session(resp)
         self.set_quality()

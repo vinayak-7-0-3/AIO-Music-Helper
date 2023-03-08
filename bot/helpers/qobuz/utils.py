@@ -23,7 +23,7 @@ async def get_url_info(url):
 
     r = re.search(
         r"(?:https:\/\/(?:w{3}|open|play)\.qobuz\.com)?(?:\/[a-z]{2}-[a-z]{2})"
-        r"?\/(album|artist|track|playlist|label)(?:\/[-\w\d]+)?\/([\w\d]+)",
+        r"?\/(album|artist|track|playlist|label|interpreter)(?:\/[-\w\d]+)?\/([\w\d]+)",
         url,
     )
     return r.groups()
@@ -35,6 +35,10 @@ async def check_type(url):
                 "iterable_key": "tracks",
             },
             "artist": {
+                "func": qobuz_api.get_artist_meta,
+                "iterable_key": "albums",
+            },
+            "interpreter": {
                 "func": qobuz_api.get_artist_meta,
                 "iterable_key": "albums",
             },
@@ -72,8 +76,7 @@ async def check_type(url):
             items = [item[type_dict["iterable_key"]]["items"] for item in content][
                 0
             ]
-
-        LOGGER.info(f"{len(items)} downloads in queue")
+            
         return items, None, type_dict, content
     else:
         return None, item_id, type_dict, content

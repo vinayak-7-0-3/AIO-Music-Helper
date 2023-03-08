@@ -22,7 +22,14 @@ class QobuzDL:
         items, item_id, type_dict, content = await check_type(url)
 
         if items:
-            pass # FOR PLAYLIST/ARTIST/LABEL
+            # FOR ARTIST/LABEL
+            if type_dict['iterable_key'] == 'albums':
+                    for item in items:
+                        await self.startAlbum(item['id'], r_id, u_name, bot=bot, update=update)
+            else:
+            # FOR PLAYLIST 
+                for item in items:
+                    await self.startTrack(bot, update, item['id'], r_id, u_name)
         else:
             if type_dict["album"]:
                 await self.startAlbum(item_id, r_id, u_name, bot=bot, update=update)
