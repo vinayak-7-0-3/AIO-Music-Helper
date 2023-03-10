@@ -28,6 +28,10 @@ class DeezerAPI:
             self.legacy_url_cipher = AES.new(Config.DEEZER_TRACK_URL_KEY.encode('ascii'), AES.MODE_ECB)
         self.bf_secret = Config.DEEZER_BF_SECRET.encode('ascii')
         
+        self.set_quality = None
+        self.allow_spatial = False
+        self.pref_mhm1 = False
+
         self.s = create_requests_session()
         self.s.headers.update({
             'accept': '*/*',

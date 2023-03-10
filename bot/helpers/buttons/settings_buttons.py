@@ -1,13 +1,13 @@
 from bot.helpers.translations import lang
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+# Some common button addon - Main menu and Close
 exit_button = [
     [
         InlineKeyboardButton(text=lang.select.MAIN_MENU_BUTTON, callback_data="main_menu"),
         InlineKeyboardButton(text=lang.select.CLOSE_BUTTON, callback_data="close")
     ]
 ]
-
 
 def main_menu_set():
     inline_keyboard = [
@@ -193,6 +193,27 @@ def quality_buttons(provider, data=None):
                 )
             ]
         ]
+    elif provider == 'deezer':
+        inline_keyboard = [
+            [
+                InlineKeyboardButton(
+                    text=lang.select.HIFI_QUALITY,
+                    callback_data="SQA_deezer_HiFi"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=lang.select.HIGH_QUALITY,
+                    callback_data="SQA_deezer_High"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=lang.select.NORMAL_QUALITY,
+                    callback_data="SQA_deezer_Normal"
+                )
+            ]
+        ]
     inline_keyboard = inline_keyboard + exit_button
     return InlineKeyboardMarkup(inline_keyboard)
 
@@ -214,6 +235,24 @@ def qobuz_menu_set():
             InlineKeyboardButton(
                 text=lang.select.QUALITY_BUTTON,
                 callback_data="QA_qobuz"
+            )
+        ]
+    ]
+    inline_keyboard = inline_keyboard + exit_button
+    return InlineKeyboardMarkup(inline_keyboard)
+
+def deezer_menu_set():
+    inline_keyboard = [
+        [
+            InlineKeyboardButton(
+                text=lang.select.QUALITY_BUTTON,
+                callback_data="QA_deezer"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text=lang.select.SPATIAL_BUTTON,
+                callback_data="spatialDZ"
             )
         ]
     ]

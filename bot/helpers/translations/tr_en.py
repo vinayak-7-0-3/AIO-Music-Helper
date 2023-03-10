@@ -136,6 +136,19 @@ API Key Valid : <code>{2}</code>
 <b>Quality : </b><code>{0}</code>
 <b>Auth Status : </b><code>{1}</code>
     """
+    #
+    # DEEZER PANEL
+    #
+    DEEZER_SETTINGS_PANEL = """
+<b>Configure Deezer Settings Here</b>
+
+<b><u>CURRENT SETTINGS</u></b>
+
+<b>Quality : </b><code>{0}</code>
+<b>Auth Status : </b><code>{1}</code>
+<b>Auth Method : </b><code>{2}</code>
+<b>Get Spatial : </b><code>{3}</code>
+    """
 
     
 
@@ -156,6 +169,7 @@ API Key Valid : <code>{2}</code>
     SOUNDCLOUD_BUTTON = "SOUNDCLOUD SETTINGS"
     CLOSE_BUTTON = "CLOSE"
     API_BUTTON = "API"
+    SPATIAL_BUTTON = "Spatial Settings"
     # COMMON BUTTONS
     QUALITY_BUTTON = "QUALITY"
     AUTH_BUTTON = "AUTH"
@@ -175,6 +189,8 @@ API Key Valid : <code>{2}</code>
     Q_HIRES_27 = "HiRes > 96"
 
 
+
+
 #----------------
 #
 # ERRORS
@@ -183,3 +199,8 @@ API Key Valid : <code>{2}</code>
     # QOBUZ
     ERR_QOBUZ_NOT_STREAMABLE = "This album is not available to download."
     ERR_NO_LINK = "No link provided to download from"
+    # DEEZER
+    ERR_DZ_QUALITY_NOT_AVAIL = "Selected quality not available in your account."
+    ERR_DZ_NOT_AVAILABLE = "Deezer Track not available"
+    ERR_DZ_COUNTRY_RSTRCT = "Track not available in your country, try downloading in 128/360RA instead"
+    ERR_DZ_QUALITY_FALLBACK = "Selected quality not available for this track. Falling back to {}"

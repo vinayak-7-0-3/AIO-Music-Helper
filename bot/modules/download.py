@@ -62,7 +62,8 @@ async def download_track(bot, update):
                     await qobuz.start(link, bot, update, reply_to_id, u_name)
                 elif provider == 'deezer':
                     await deezerdl.start(link, bot, update, reply_to_id, u_name)
-                user_settings.set_var(update.chat.id, "ON_TASK", False)
+
+                await bot.delete_messages(update.chat.id, msg.id)
                 await bot.send_message(
                     chat_id=update.chat.id,
                     text=lang.select.TASK_COMPLETED,
@@ -75,7 +76,7 @@ async def download_track(bot, update):
                     text=e,
                     reply_to_message_id=update.id
                 )
-                user_settings.set_var(update.chat.id, "ON_TASK", False)
+            user_settings.set_var(update.chat.id, "ON_TASK", False)
 
             await clean_up(reply_to_id, provider)
             

@@ -9,6 +9,7 @@ from bot.helpers.translations import lang
 from bot.helpers.qobuz.qopy import qobuz_api
 from bot.helpers.kkbox.kkapi import kkbox_api
 from bot.helpers.qobuz.utils import human_quality
+from bot.helpers.deezer.handler import deezerdl
 from bot.helpers.buttons.settings_buttons import *
 from bot.helpers.database.postgres_impl import set_db
 from bot.helpers.tidal_func.settings import TIDAL_SETTINGS
@@ -84,9 +85,21 @@ async def qobuz_panel_cb(bot, update):
 async def deezer_panel_cb(bot, update):
     if await check_id(update.from_user.id, restricted=True):
         quality, _ = set_db.get_variable("DEEZER_QUALITY")
-        quality = quality.replace('_', " - ")
+        spatial, _ = set_db.get_variable("DEEZER_SPATIAL")
+        quality = await deezerdl.parse_quality(quality, False, True)
         auth, _ = set_db.get_variable("DEEZER_AUTH")
         auth_by = 'By ARL' if Config.DEEZER_ARL != "" else 'By Creds'
+        await bot.edit_message_text(
+            chat_id=update.message.chat.id,
+            message_id=update.message.id,
+            text=lang.select.DEEZER_SETTINGS_PANEL.format(
+                quality,
+                auth,
+                auth_by,
+                spatial
+            ),
+            reply_markup=deezer_menu_set()
+        )
         
 
 # API SETTINGS FOR TIDAL-DL
@@ -190,6 +203,10 @@ async def quality_cb(bot, update):
         elif provider == 'qobuz':
             _quality, _ = set_db.get_variable("QOBUZ_QUALITY")
             current_quality = await human_quality(int(_quality))
+        elif provider == 'deezer':
+            _quality, _ = set_db.get_variable("DEEZER_QUALITY")
+            current_quality = await deezerdl.parse_quality(_quality, False, True)
+
         await bot.edit_message_text(
             chat_id=update.message.chat.id,
             message_id=update.message.id,
@@ -218,6 +235,9 @@ async def set_quality_cb(bot, update):
             set_db.set_variable("QOBUZ_QUALITY", quality, False, None)
             qobuz_api.quality = int(quality)
             current_quality = await human_quality(int(quality))
+        elif provider == 'deezer':
+            await deezerdl.set_quality(quality)
+            current_quality = quality
         try:
             await bot.edit_message_text(
                 chat_id=update.message.chat.id,

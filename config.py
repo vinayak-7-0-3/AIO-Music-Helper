@@ -43,7 +43,9 @@ class Config(object):
     except:
         AUTH_USERS = ""
 
+    # Dir to use for thumbs, download files etc. 
     WORK_DIR = getenv("WORK_DIR", "./bot/")
+    # Just name of the Downloads Folder
     DOWNLOADS_FOLDER = getenv("DOWNLOADS_FOLDER", "DOWNLOADS")
     DOWNLOAD_BASE_DIR = WORK_DIR + DOWNLOADS_FOLDER
     

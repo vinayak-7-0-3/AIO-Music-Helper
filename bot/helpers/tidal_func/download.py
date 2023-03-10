@@ -150,7 +150,7 @@ async def downloadTrack(track: Track, album=None, playlist=None, userProgress=No
             quality = TIDAL_SETTINGS.audioQuality
 
         stream = TIDAL_API.getStreamUrl(track.id, quality)
-        path = getTrackPath(track, stream, album, playlist)
+        path = getTrackPath(track, stream, r_id, album, playlist)
 
         tool = aigpy.download.DownloadTool(path + '.part', [stream.url])
         tool.setUserProgress(userProgress)

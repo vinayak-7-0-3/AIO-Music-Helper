@@ -42,7 +42,7 @@ def __getExtension__(stream: StreamUrl):
     return '.m4a'
 
 
-def getAlbumPath(album):
+def getAlbumPath(album, r_id):
     artistName = __fixPath__(TIDAL_API.getArtistsName(album.artists))
     albumArtistName = __fixPath__(album.artist.name) if album.artist is not None else ""
 
@@ -77,25 +77,25 @@ def getAlbumPath(album):
     retpath = retpath.replace(R"{RecordType}", album.type)
     retpath = retpath.replace(R"{None}", "")
     retpath = retpath.strip()
-    return f"{TIDAL_SETTINGS.downloadPath}/{retpath}"
+    return f"{TIDAL_SETTINGS.downloadPath}/{r_id}/{retpath}"
 
 
-def getPlaylistPath(playlist):
+def getPlaylistPath(playlist, r_id):
     # name
     name = __fixPath__(playlist.title)
-    return f"{TIDAL_SETTINGS.downloadPath}/Playlist/{name}"
+    return f"{TIDAL_SETTINGS.downloadPath}/{r_id}/Playlist/{name}"
 
 
-def getTrackPath(track, stream, album=None, playlist=None):
+def getTrackPath(track, stream, r_id, album=None, playlist=None,):
     base = './'
     number = str(track.trackNumber).rjust(2, '0')
     if album is not None:
-        base = getAlbumPath(album)
+        base = getAlbumPath(album, r_id)
         if album.numberOfVolumes > 1:
             base += f'/CD{str(track.volumeNumber)}'
 
     if playlist is not None and TIDAL_SETTINGS.usePlaylistFolder:
-        base = getPlaylistPath(playlist)
+        base = getPlaylistPath(playlist, r_id)
         number = str(track.trackNumberOnPlaylist).rjust(2, '0')
 
     # artist
