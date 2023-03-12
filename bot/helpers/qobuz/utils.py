@@ -168,7 +168,6 @@ async def post_cover(meta, bot, update, r_id, u_name, quality=None):
         post_details = post_details + lang.select.QUALITY_ADDON.format(quality)
     if Config.MENTION_USERS == "True":
             post_details = post_details + lang.select.USER_MENTION_ALBUM.format(u_name)
-
     await bot.send_photo(
         chat_id=update.chat.id,
         photo=meta['albumart'],

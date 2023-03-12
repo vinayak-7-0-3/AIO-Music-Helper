@@ -203,6 +203,22 @@ class DeezerAPI:
                 return self._api_call('deezer.pageAlbum', {'alb_id': e.payload['FALLBACK']['ALB_ID'], 'lang': self.language})
             else:
                 raise e
+            
+    def get_artist_name(self, id):
+        return self._api_call('artist.getData', {'art_id': id, 'array_default': ['ART_NAME']})['ART_NAME']
+
+    def get_artist_album_ids(self, id, start, nb, credited_albums):
+        payload = {
+            'art_id': id,
+            'start': start,
+            'nb': nb,
+            'filter_role_id': [0,5] if credited_albums else [0],
+            'nb_songs': 0,
+            'discography_mode': 'all' if credited_albums else None,
+            'array_default': ['ALB_ID']
+        }
+        resp = self._api_call('album.getDiscography', payload)
+        return [a['ALB_ID'] for a in resp['data']]
 
     async def dl_track(self, id, url, path):
         bf_key = self._get_blowfish_key(id)
@@ -228,14 +244,6 @@ class DeezerAPI:
             return False
         else:
             return True
-            
-    def get_album(self, id):
-        try:
-            return self._api_call('deezer.pageAlbum', {'alb_id': id, 'lang': self.language})
-        except APIError as e:
-            if e.payload:
-                return self._api_call('deezer.pageAlbum', {'alb_id': e.payload['FALLBACK']['ALB_ID'], 'lang': self.language})
-            else:
-                raise e
+
 
 deezerapi = DeezerAPI()

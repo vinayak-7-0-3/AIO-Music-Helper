@@ -252,7 +252,46 @@ def deezer_menu_set():
         [
             InlineKeyboardButton(
                 text=lang.select.SPATIAL_BUTTON,
-                callback_data="spatialDZ"
+                callback_data="spaDZ"
+            )
+        ]
+    ]
+    inline_keyboard = inline_keyboard + exit_button
+    return InlineKeyboardMarkup(inline_keyboard)
+
+def deezer_spatial_buttons(mhm1, spatial):
+    e_mhm1 = lang.select.DZ_ENABLE_MHM1
+    e_mha1 = lang.select.DZ_ENABLE_MHA1
+    e_spatial = lang.select.ENABLE_BUTTON
+    d_spatal = lang.select.DISABLE_BUTTON
+    if mhm1:
+        e_mhm1 = e_mhm1 + " ✅" 
+    else:
+        e_mha1 = e_mha1 + " ✅"
+    if spatial:
+        e_spatial = e_spatial + " ✅"
+    else:
+        d_spatal = d_spatal + " ✅"
+
+    inline_keyboard = [
+        [
+            InlineKeyboardButton(
+                text=e_mhm1,
+                callback_data="setspaDZ_mhm1"
+            ),
+            InlineKeyboardButton(
+                text=e_mha1,
+                callback_data="setspaDZ_mha1"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text=e_spatial,
+                callback_data="setspaDZ_enable"
+            ),
+            InlineKeyboardButton(
+                text=d_spatal,
+                callback_data="setspaDZ_disable"
             )
         ]
     ]

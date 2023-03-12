@@ -8,8 +8,8 @@ import bot.helpers.tidal_func.apikey as tidalAPI
 from bot.helpers.translations import lang
 from bot.helpers.qobuz.qopy import qobuz_api
 from bot.helpers.kkbox.kkapi import kkbox_api
-from bot.helpers.qobuz.utils import human_quality
 from bot.helpers.deezer.handler import deezerdl
+from bot.helpers.qobuz.utils import human_quality
 from bot.helpers.buttons.settings_buttons import *
 from bot.helpers.database.postgres_impl import set_db
 from bot.helpers.tidal_func.settings import TIDAL_SETTINGS
@@ -137,6 +137,32 @@ async def tidal_api_cb(bot, update):
             await tidal_api_cb(bot, update)
         except:
             pass
+
+# SPATIAL AUDIO SETTINGS FOR DEEZER
+@Client.on_callback_query(filters.regex(pattern=r"^spaDZ"))
+async def dz_spatial_cb(bot, update):
+    if await check_id(update.from_user.id, restricted=True):
+        pref_mhm1, allow_spatial = await deezerdl.spatial_deezer('get')
+        await bot.edit_message_text(
+            chat_id=update.message.chat.id,
+            message_id=update.message.id,
+            text=lang.select.DZ_SPATIAL_PANEL,
+            reply_markup=deezer_spatial_buttons(pref_mhm1, allow_spatial)
+        )
+
+# SET SPATIAL SETTINGS FOR DEEZER
+@Client.on_callback_query(filters.regex(pattern=r"^setspaDZ"))
+async def set_dz_spatial_cb(bot, update):
+    if await check_id(update.from_user.id, restricted=True):
+        option = update.data.split("_")[1]
+        # Values after setting the user input
+        pref_mhm1, allow_spatial = await deezerdl.spatial_deezer('set', option)
+        await bot.edit_message_text(
+            chat_id=update.message.chat.id,
+            message_id=update.message.id,
+            text=lang.select.DZ_SPATIAL_PANEL,
+            reply_markup=deezer_spatial_buttons(pref_mhm1, allow_spatial)
+        )
 
 
 # GLOBAL FUNCTION TO REMOVE AUTH

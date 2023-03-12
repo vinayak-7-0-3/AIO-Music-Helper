@@ -34,7 +34,9 @@ class DeezerDL:
         if type == 'track':
             await self.getTrack(id, bot, update, r_id, u_name)
         if type == 'album':
-            await self.getAlbum(id, bot, update, r_id, u_name) 
+            await self.getAlbum(id, bot, update, r_id, u_name)
+        if type == 'artist':
+            await self.getArtist(id, bot, update, r_id, u_name)
 
     async def getTrack(self, track_id, bot, update, r_id, u_name, isalbum=False):
         is_user_upped = int(track_id) < 0
@@ -69,7 +71,12 @@ class DeezerDL:
         await self.post_details(a_meta, bot, update, r_id, u_name)
         for track in track_data:
             await self.getTrack(track['SNG_ID'], bot, update, r_id, u_name, True)
-        
+
+    async def getArtist(self, artist_id, bot, update, r_id, u_name):
+        #artist = deezerapi.get_artist_name(artist_id)
+        albums = deezerapi.get_artist_album_ids(artist_id, 0, -1, False)
+        for album_id in albums:
+            await self.getAlbum(album_id, bot, update, r_id, u_name)
 
     async def dlTrack(self, t_data, q_tier, metadata, bot, update, r_id, u_name, isalbum, is_spatial):
         if q_tier in ('MP3_320', 'FLAC'):
@@ -154,7 +161,7 @@ class DeezerDL:
         if type == 'track':
             metadata['title'] = data['SNG_TITLE']
             metadata['album'] = data['ALB_TITLE']
-            metadata['artist'] = await self.get_artists(data)
+            metadata['artist'] = await self.get_artists_from_meta(data)
             metadata['albumartist'] = data['ART_NAME']
             metadata['tracknumber'] = data.get('TRACK_NUMBER')
             metadata['volume'] = data.get('DISK_NUMBER')
@@ -179,7 +186,7 @@ class DeezerDL:
             metadata['provider'] = 'deezer'
         return metadata
 
-    async def get_artists(self, data):
+    async def get_artists_from_meta(self, data):
         artists = []
         for artist in data['ARTISTS']:
             artists.append(artist['ART_NAME'])
@@ -294,6 +301,24 @@ class DeezerDL:
         elif quality == "Normal":
             deezerapi.set_quality = 'MP3_128'
             set_db.set_variable("DEEZER_QUALITY", "MP3_128", False, None)
+
+    async def spatial_deezer(self, info, option=None):
+        if info == "get":
+            return deezerapi.pref_mhm1, deezerapi.allow_spatial
+        else:
+            if option == 'mhm1':
+                set_db.set_variable("DEEZER_MHM1", True, False, None)
+                deezerapi.pref_mhm1 = True
+            elif option == 'mha1':
+                set_db.set_variable("DEEZER_MHM1", False, False, None)
+                deezerapi.pref_mhm1 = False
+            elif option == 'enable':
+                set_db.set_variable("DEEZER_SPATIAL", True, False, None)
+                deezerapi.allow_spatial = True
+            elif option == 'disable':
+                set_db.set_variable("DEEZER_SPATIAL", False, False, None)
+                deezerapi.allow_spatial = False
+            return deezerapi.pref_mhm1, deezerapi.allow_spatial
 
 
 deezerdl = DeezerDL()

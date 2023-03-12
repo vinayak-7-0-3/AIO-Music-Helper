@@ -93,6 +93,7 @@ class EN(object):
     RM_AUTH_SUCCESSFULL = "Successfully removed {} auth details."
     QUALITY_SET_PANEL = "<b>Choose the required quality for {0}\n\nCurrent Quality :</b> <code>{1}</code>"
     COMMON_AUTH_PANEL = "<b>Configure {0} Authentication\n\nAuth Status : </b>{1}"
+    DZ_SPATIAL_PANEL = "<b>Configure Spatial Audio Settings For Deezer</b>"
     #
     # TIDAL PANEL
     #
@@ -177,6 +178,8 @@ API Key Valid : <code>{2}</code>
     ADD_AUTH_BUTTON = "ADD AUTH"
     YES_BUTTON = "YES"
     NO_BUTTON = "NO"
+    ENABLE_BUTTON = 'Enable'
+    DISABLE_BUTTON = 'Disable'
     # TIDAL QUALITY
     MASTER_QUALITY = "Master - FLAC"
     HIFI_QUALITY = "HiFi"
@@ -187,6 +190,9 @@ API Key Valid : <code>{2}</code>
     Q_320 = "320K"
     Q_HIRES_7 = "HiRes =< 96"
     Q_HIRES_27 = "HiRes > 96"
+    # DEEZER SPATIAL BUTTONS
+    DZ_ENABLE_MHM1 = "Use MHM1 Codec"
+    DZ_ENABLE_MHA1 = 'Use MHA1 Codec'
 
 
 
