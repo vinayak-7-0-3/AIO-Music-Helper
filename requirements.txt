@@ -1,4 +1,4 @@
-pyrogram
+pyrogram==2.0.96
 tgcrypto
 aiohttp
 mutagen
@@ -7,8 +7,6 @@ aigpy
 python-dotenv
 lyricsgenius
 pydub
-PyQt5
-qt-material
 pycryptodomex
 Pillow
 psycopg2-binary

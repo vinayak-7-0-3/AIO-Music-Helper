@@ -1,5 +1,5 @@
-from bot import CMD
-from config import LOGGER
+from config import Config
+from bot import CMD, LOGGER
 from pyrogram import Client, filters
 from pyrogram.errors import MessageNotModified
 
@@ -8,6 +8,7 @@ import bot.helpers.tidal_func.apikey as tidalAPI
 from bot.helpers.translations import lang
 from bot.helpers.qobuz.qopy import qobuz_api
 from bot.helpers.kkbox.kkapi import kkbox_api
+from bot.helpers.deezer.handler import deezerdl
 from bot.helpers.qobuz.utils import human_quality
 from bot.helpers.buttons.settings_buttons import *
 from bot.helpers.database.postgres_impl import set_db
@@ -79,10 +80,31 @@ async def qobuz_panel_cb(bot, update):
             reply_markup=qobuz_menu_set()
         )
 
+# DEEZER SETTINGS PANEL
+@Client.on_callback_query(filters.regex(pattern=r"^deezerPanel"))
+async def deezer_panel_cb(bot, update):
+    if await check_id(update.from_user.id, restricted=True):
+        quality, _ = set_db.get_variable("DEEZER_QUALITY")
+        spatial, _ = set_db.get_variable("DEEZER_SPATIAL")
+        quality = await deezerdl.parse_quality(quality, False, True)
+        auth, _ = set_db.get_variable("DEEZER_AUTH")
+        auth_by = 'By ARL' if Config.DEEZER_ARL != "" else 'By Creds'
+        await bot.edit_message_text(
+            chat_id=update.message.chat.id,
+            message_id=update.message.id,
+            text=lang.select.DEEZER_SETTINGS_PANEL.format(
+                quality,
+                auth,
+                auth_by,
+                spatial
+            ),
+            reply_markup=deezer_menu_set()
+        )
+        
 
 # API SETTINGS FOR TIDAL-DL
 @Client.on_callback_query(filters.regex(pattern=r"^apiTidal"))
-async def tidal_api_cb(bot, update):
+async def tidal_api_cb(bot, update, refresh=False):
     if await check_id(update.from_user.id, restricted=True):
         option = update.data.split("_")[1]
         current_api = TIDAL_SETTINGS.apiKeyIndex
@@ -90,7 +112,7 @@ async def tidal_api_cb(bot, update):
         info = ""
         for number in api:
             info += f"<b>● {number} - {platform[number]}</b>\nFormats - <code>{quality[number]}</code>\nValid - <code>{validity[number]}</code>\n"
-        if option == "panel":
+        if option == "panel" or refresh == True:
             await bot.edit_message_text(
                 chat_id=update.message.chat.id,
                 message_id=update.message.id,
@@ -104,17 +126,44 @@ async def tidal_api_cb(bot, update):
             )
         else:
             set_db.set_variable("TIDAL_API_KEY_INDEX", option, False, None)
-            await update.answer(lang.select.API_KEY_CHANGED.format(
-                api,
-                tidalAPI.getItem(api)['platform'],
+            await update.answer(
+                lang.select.TIDAL_API_KEY_CHANGED.format(
+                    int(option),
+                    tidalAPI.getItem(int(option))['platform'],
+                )
             )
+            TIDAL_SETTINGS.read()
+            await checkAPITidal()
+            try:
+                await tidal_api_cb(bot, update, True)
+            except:
+                pass
+
+# SPATIAL AUDIO SETTINGS FOR DEEZER
+@Client.on_callback_query(filters.regex(pattern=r"^spaDZ"))
+async def dz_spatial_cb(bot, update):
+    if await check_id(update.from_user.id, restricted=True):
+        pref_mhm1, allow_spatial = await deezerdl.spatial_deezer('get')
+        await bot.edit_message_text(
+            chat_id=update.message.chat.id,
+            message_id=update.message.id,
+            text=lang.select.DZ_SPATIAL_PANEL,
+            reply_markup=deezer_spatial_buttons(pref_mhm1, allow_spatial)
         )
-        TIDAL_SETTINGS.read()
-        await checkAPITidal()
-        try:
-            await tidal_api_cb(bot, update)
-        except:
-            pass
+
+# SET SPATIAL SETTINGS FOR DEEZER
+@Client.on_callback_query(filters.regex(pattern=r"^setspaDZ"))
+async def set_dz_spatial_cb(bot, update):
+    if await check_id(update.from_user.id, restricted=True):
+        option = update.data.split("_")[1]
+        # Values after setting the user input
+        pref_mhm1, allow_spatial = await deezerdl.spatial_deezer('set', option)
+        await bot.edit_message_text(
+            chat_id=update.message.chat.id,
+            message_id=update.message.id,
+            text=lang.select.DZ_SPATIAL_PANEL,
+            reply_markup=deezer_spatial_buttons(pref_mhm1, allow_spatial)
+        )
 
 
 # GLOBAL FUNCTION TO REMOVE AUTH
@@ -181,6 +230,10 @@ async def quality_cb(bot, update):
         elif provider == 'qobuz':
             _quality, _ = set_db.get_variable("QOBUZ_QUALITY")
             current_quality = await human_quality(int(_quality))
+        elif provider == 'deezer':
+            _quality, _ = set_db.get_variable("DEEZER_QUALITY")
+            current_quality = await deezerdl.parse_quality(_quality, False, True)
+
         await bot.edit_message_text(
             chat_id=update.message.chat.id,
             message_id=update.message.id,
@@ -209,6 +262,9 @@ async def set_quality_cb(bot, update):
             set_db.set_variable("QOBUZ_QUALITY", quality, False, None)
             qobuz_api.quality = int(quality)
             current_quality = await human_quality(int(quality))
+        elif provider == 'deezer':
+            await deezerdl.set_quality(quality)
+            current_quality = quality
         try:
             await bot.edit_message_text(
                 chat_id=update.message.chat.id,

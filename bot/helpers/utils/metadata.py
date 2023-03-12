@@ -10,6 +10,7 @@ from mutagen.mp3 import EasyMP3
 from mutagen.mp4 import MP4
 from mutagen.id3 import TALB, TCOP, TDRC, TIT2, TPE1, TRCK, APIC, TCON, TOPE, TSRC, USLT
 
+
 base_metadata = {
     'title': '',
     'album': '',
@@ -20,6 +21,7 @@ base_metadata = {
     'lyrics': '',
     'isrc': '',
     'totaltracks': '',
+    'volume' : '',
     'albumart' : '',
     'thumbnail' : '',
     'extension': '',

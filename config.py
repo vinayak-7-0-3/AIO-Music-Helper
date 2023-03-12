@@ -43,7 +43,9 @@ class Config(object):
     except:
         AUTH_USERS = ""
 
+    # Dir to use for thumbs, download files etc. 
     WORK_DIR = getenv("WORK_DIR", "./bot/")
+    # Just name of the Downloads Folder
     DOWNLOADS_FOLDER = getenv("DOWNLOADS_FOLDER", "DOWNLOADS")
     DOWNLOAD_BASE_DIR = WORK_DIR + DOWNLOADS_FOLDER
     
@@ -82,6 +84,16 @@ class Config(object):
     QOBUZ_EMAIL = getenv("QOBUZ_EMAIL", "")
     QOBUZ_PASSWORD = getenv("QOBUZ_PASSWORD", "")
     QOBUZ_TRACK_FORMAT = getenv("QOBUZ_TRACK_FORMAT", "{tracknumber}. {tracktitle}")
+#--------------------
+
+# DEEZER VARIABLES
+
+#--------------------
+    DEEZER_EMAIL = getenv("DEEZER_EMAIL", "")
+    DEEZER_PASSWORD = getenv("DEEZER_PASSWORD", "")
+    DEEZER_BF_SECRET = getenv("DEEZER_BF_SECRET", "")
+    DEEZER_TRACK_URL_KEY = getenv("DEEZER_TRACK_URL_KEY", "")
+    DEEZER_ARL = getenv("DEEZER_ARL", "")
 
 
     if BOT_USERNAME.startswith("@"):

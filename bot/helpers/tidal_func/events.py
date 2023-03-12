@@ -191,7 +191,7 @@ TIDAL API CHECKS
 
 async def checkAPITidal():
     if not apiKey.isItemValid(TIDAL_SETTINGS.apiKeyIndex):
-        LOGGER.warning(lang.select.ERR_API_KEY)
+        LOGGER.warning(lang.select.ERR_TD_API_KEY)
     else:
         index = TIDAL_SETTINGS.apiKeyIndex
         TIDAL_API.apiKey = apiKey.getItem(index)

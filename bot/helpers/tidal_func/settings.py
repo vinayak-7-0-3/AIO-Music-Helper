@@ -13,11 +13,8 @@ import aigpy
 import base64
 
 from config import Config
-
 from bot.helpers.tidal_func.enums import *
-
 from bot.helpers.database.postgres_impl import set_db
-
 
 
 class Settings(aigpy.model.ModelBase):
@@ -30,7 +27,7 @@ class Settings(aigpy.model.ModelBase):
     showProgress = False
     showTrackInfo = True
     saveAlbumInfo = False
-    downloadPath = "./bot/DOWNLOADS/"
+    downloadPath = Config.DOWNLOAD_BASE_DIR + "/tidal"
     audioQuality = AudioQuality.Master
     usePlaylistFolder = True
     albumFolderFormat = R"{ArtistName}/{Flag} {AlbumTitle} [{AlbumID}] [{AlbumYear}]"

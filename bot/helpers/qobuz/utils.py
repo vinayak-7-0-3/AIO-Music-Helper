@@ -23,7 +23,7 @@ async def get_url_info(url):
 
     r = re.search(
         r"(?:https:\/\/(?:w{3}|open|play)\.qobuz\.com)?(?:\/[a-z]{2}-[a-z]{2})"
-        r"?\/(album|artist|track|playlist|label)(?:\/[-\w\d]+)?\/([\w\d]+)",
+        r"?\/(album|artist|track|playlist|label|interpreter)(?:\/[-\w\d]+)?\/([\w\d]+)",
         url,
     )
     return r.groups()
@@ -35,6 +35,10 @@ async def check_type(url):
                 "iterable_key": "tracks",
             },
             "artist": {
+                "func": qobuz_api.get_artist_meta,
+                "iterable_key": "albums",
+            },
+            "interpreter": {
                 "func": qobuz_api.get_artist_meta,
                 "iterable_key": "albums",
             },
@@ -72,8 +76,7 @@ async def check_type(url):
             items = [item[type_dict["iterable_key"]]["items"] for item in content][
                 0
             ]
-
-        LOGGER.info(f"{len(items)} downloads in queue")
+            
         return items, None, type_dict, content
     else:
         return None, item_id, type_dict, content
@@ -162,10 +165,9 @@ async def post_cover(meta, bot, update, r_id, u_name, quality=None):
     )
 
     if quality:
-        post_details = post_details + lang.select.QOBUZ_ALBUM_QUALITY_ADDON.format(quality)
+        post_details = post_details + lang.select.QUALITY_ADDON.format(quality)
     if Config.MENTION_USERS == "True":
             post_details = post_details + lang.select.USER_MENTION_ALBUM.format(u_name)
-
     await bot.send_photo(
         chat_id=update.chat.id,
         photo=meta['albumart'],
@@ -175,7 +177,7 @@ async def post_cover(meta, bot, update, r_id, u_name, quality=None):
 
 async def check_quality(raw_meta, type='track'):
     if int(qobuz_api.quality) == 5:
-        return 'mp3', '320'
+        return 'mp3', '320k'
     if not type=='track':
         raw_meta = raw_meta["tracks"]["items"][0]
         new_track_dict = qobuz_api.get_track_url(raw_meta["id"])
@@ -189,7 +191,7 @@ async def check_quality(raw_meta, type='track'):
             for restriction in restrictions
         ):
             quality_met = False
-    quality = f'{new_track_dict["bit_depth"]}B - {new_track_dict["sampling_rate"]}'
+    quality = f'{new_track_dict["bit_depth"]}B - {new_track_dict["sampling_rate"]}k'
 
     return "flac", quality
 

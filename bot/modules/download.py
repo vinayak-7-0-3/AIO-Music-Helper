@@ -8,6 +8,7 @@ from bot.helpers.database.postgres_impl import user_settings
 from bot.helpers.utils.auth_check import check_id, checkLogins
 
 from bot.helpers.qobuz.handler import qobuz
+from bot.helpers.deezer.handler import deezerdl
 from bot.helpers.kkbox.kkbox_helper import kkbox
 from bot.helpers.tidal_func.events import startTidal
 
@@ -59,7 +60,10 @@ async def download_track(bot, update):
                     await kkbox.start(link, bot, update, reply_to_id, u_name)
                 elif provider == 'qobuz':
                     await qobuz.start(link, bot, update, reply_to_id, u_name)
-                user_settings.set_var(update.chat.id, "ON_TASK", False)
+                elif provider == 'deezer':
+                    await deezerdl.start(link, bot, update, reply_to_id, u_name)
+
+                await bot.delete_messages(update.chat.id, msg.id)
                 await bot.send_message(
                     chat_id=update.chat.id,
                     text=lang.select.TASK_COMPLETED,
@@ -72,7 +76,7 @@ async def download_track(bot, update):
                     text=e,
                     reply_to_message_id=update.id
                 )
-                user_settings.set_var(update.chat.id, "ON_TASK", False)
+            user_settings.set_var(update.chat.id, "ON_TASK", False)
 
             await clean_up(reply_to_id, provider)
             
