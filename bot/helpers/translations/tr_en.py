@@ -26,6 +26,7 @@ class EN(object):
     TIDAL_AUTH_NEXT_STEP = "Go to {0} within the next {1} to complete tidal authentication."
     TIDAL_AUTH_SUCCESS = "Tidal authentication successful.\n\nIt is now valid for {}"
     TIDAL_ALREADY_AUTH = "Your authentication is already done.\nIts is valid for {}"
+    TIDAL_API_KEY_CHANGED = "Successfully updated the API Key to {} - {}"
     # KKBOX
     KKBOX_NOT_AUTH = "KKBOX account credentials not given or subcription expired"
     # DEEZER
@@ -210,3 +211,5 @@ API Key Valid : <code>{2}</code>
     ERR_DZ_NOT_AVAILABLE = "Deezer Track not available"
     ERR_DZ_COUNTRY_RSTRCT = "Track not available in your country, try downloading in 128/360RA instead"
     ERR_DZ_QUALITY_FALLBACK = "Selected quality not available for this track. Falling back to {}"
+    # TIDAL
+    ERR_TD_API_KEY = "Tidal API Key not valid. Please change your API Key."

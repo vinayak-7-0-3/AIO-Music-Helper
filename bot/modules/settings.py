@@ -104,7 +104,7 @@ async def deezer_panel_cb(bot, update):
 
 # API SETTINGS FOR TIDAL-DL
 @Client.on_callback_query(filters.regex(pattern=r"^apiTidal"))
-async def tidal_api_cb(bot, update):
+async def tidal_api_cb(bot, update, refresh=False):
     if await check_id(update.from_user.id, restricted=True):
         option = update.data.split("_")[1]
         current_api = TIDAL_SETTINGS.apiKeyIndex
@@ -112,7 +112,7 @@ async def tidal_api_cb(bot, update):
         info = ""
         for number in api:
             info += f"<b>● {number} - {platform[number]}</b>\nFormats - <code>{quality[number]}</code>\nValid - <code>{validity[number]}</code>\n"
-        if option == "panel":
+        if option == "panel" or refresh == True:
             await bot.edit_message_text(
                 chat_id=update.message.chat.id,
                 message_id=update.message.id,
@@ -126,17 +126,18 @@ async def tidal_api_cb(bot, update):
             )
         else:
             set_db.set_variable("TIDAL_API_KEY_INDEX", option, False, None)
-            await update.answer(lang.select.API_KEY_CHANGED.format(
-                api,
-                tidalAPI.getItem(api)['platform'],
+            await update.answer(
+                lang.select.TIDAL_API_KEY_CHANGED.format(
+                    int(option),
+                    tidalAPI.getItem(int(option))['platform'],
+                )
             )
-        )
-        TIDAL_SETTINGS.read()
-        await checkAPITidal()
-        try:
-            await tidal_api_cb(bot, update)
-        except:
-            pass
+            TIDAL_SETTINGS.read()
+            await checkAPITidal()
+            try:
+                await tidal_api_cb(bot, update, True)
+            except:
+                pass
 
 # SPATIAL AUDIO SETTINGS FOR DEEZER
 @Client.on_callback_query(filters.regex(pattern=r"^spaDZ"))
