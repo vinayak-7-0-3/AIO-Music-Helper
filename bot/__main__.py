@@ -73,7 +73,7 @@ class Bot(Client):
         if Config.ANIT_SPAM_MODE == "True":
             LOGGER.info("ANTI-SPAM MODE ON")
         await get_chats()
-        LOGGER.info("❤ MUSIC HELPER BOT BETA v0.25 STARTED SUCCESSFULLY ❤")
+        LOGGER.info("❤ MUSIC HELPER BOT BETA v0.30 STARTED SUCCESSFULLY ❤")
 
     async def stop(self, *args):
         await super().stop()
