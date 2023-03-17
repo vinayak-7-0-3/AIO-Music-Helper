@@ -11,6 +11,7 @@ from bot.helpers.qobuz.handler import qobuz
 from bot.helpers.deezer.handler import deezerdl
 from bot.helpers.kkbox.kkbox_helper import kkbox
 from bot.helpers.tidal_func.events import startTidal
+from bot.helpers.spotify.handler import spotify_dl
 
 @Client.on_message(filters.command(CMD.DOWNLOAD))
 async def download_track(bot, update):
@@ -39,6 +40,12 @@ async def download_track(bot, update):
                         text=err_msg,
                         reply_to_message_id=update.id
                     )
+            else:
+                return await bot.send_message(
+                    chat_id=update.chat.id,
+                    text=lang.select.ERR_LINK_RECOGNITION,
+                    reply_to_message_id=update.id
+                )
             
             LOGGER.info(f"Download Initiated By - {update.from_user.first_name}")
             msg = await bot.send_message(
@@ -62,7 +69,8 @@ async def download_track(bot, update):
                     await qobuz.start(link, bot, update, reply_to_id, u_name)
                 elif provider == 'deezer':
                     await deezerdl.start(link, bot, update, reply_to_id, u_name)
-
+                elif provider == 'spotify':
+                    await spotify_dl.start(link, bot, update, reply_to_id, u_name)
                 await bot.delete_messages(update.chat.id, msg.id)
                 await bot.send_message(
                     chat_id=update.chat.id,

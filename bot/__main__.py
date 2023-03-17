@@ -8,6 +8,7 @@ from bot.helpers.utils.auth_check import get_chats
 from bot.helpers.qobuz.handler import qobuz
 from bot.helpers.deezer.handler import deezerdl
 from bot.helpers.kkbox.kkbox_helper import kkbox
+from bot.helpers.spotify.handler import spotify_dl
 from bot.helpers.database.postgres_impl import set_db
 from bot.helpers.tidal_func.events import checkAPITidal
 from bot.helpers.tidal_func.settings import TIDAL_SETTINGS, TIDAL_TOKEN
@@ -46,6 +47,12 @@ async def loadConfigs():
         await deezerdl.login(True)
     else:
         set_db.set_variable("DEEZER_AUTH", False, False, None)
+    if not "" in {Config.SPOTIFY_EMAIL, Config.SPOTIFY_PASS}:
+        await spotify_dl.login()
+        set_db.set_variable("SPOTIFY_AUTH", True, False, None)
+    else:
+        set_db.set_variable("SPOTIFY_AUTH", False, False, None)
+        
 
 class Bot(Client):
     def __init__(self):

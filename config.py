@@ -94,7 +94,13 @@ class Config(object):
     DEEZER_BF_SECRET = getenv("DEEZER_BF_SECRET", "")
     DEEZER_TRACK_URL_KEY = getenv("DEEZER_TRACK_URL_KEY", "")
     DEEZER_ARL = getenv("DEEZER_ARL", "")
+#--------------------
 
+# SPOTIFY VARIABLES
+
+#--------------------
+    SPOTIFY_EMAIL = getenv("SPOTIFY_EMAIL", "")
+    SPOTIFY_PASS = getenv("SPOTIFY_PASS", "")
 
     if BOT_USERNAME.startswith("@"):
         BOT_USERNAME = BOT_USERNAME[1:]

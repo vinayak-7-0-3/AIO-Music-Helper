@@ -3,6 +3,7 @@ deezer = ["https://deezer.page.link", "https://deezer.com", "deezer.com", "https
 qobuz = ["https://play.qobuz.com", "https://open.qobuz.com", "https://www.qobuz.com"]
 sc = []
 kkbox = ["https://www.kkbox.com"]
+spotify = ["https://open.spotify.com"]
 
 async def check_link(link):
     if link.startswith(tuple(tidal)):
@@ -15,5 +16,7 @@ async def check_link(link):
         return "sc"
     elif link.startswith(tuple(kkbox)):
         return "kkbox"
+    elif link.startswith(tuple(spotify)):
+        return 'spotify'
     else:
         return None

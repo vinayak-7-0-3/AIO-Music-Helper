@@ -113,5 +113,10 @@ async def checkLogins(provider):
         if not auth:
             return True, lang.select.KKBOX_NOT_AUTH
         return False, None
+    elif provider == "spotify":
+        auth, _ = set_db.get_variable("SPOTIFY_AUTH")
+        if not auth:
+            return True, lang.select.SPOTIFY_NOT_AUTH
+        return False, None
     else:
         pass
