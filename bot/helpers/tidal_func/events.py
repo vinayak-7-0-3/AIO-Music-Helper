@@ -3,10 +3,12 @@ import aigpy
 
 import bot.helpers.tidal_func.apikey as apiKey
 
-from bot import LOGGER
+from bot.logger import LOGGER
 from bot.helpers.translations import lang
+from bot.helpers.utils.tg_utils import edit_message
 from bot.helpers.database.postgres_impl import set_db
 from bot.helpers.buttons.settings_buttons import common_auth_set
+from bot.helpers.utils.common import post_cover, check_music_exist
 
 from bot.helpers.tidal_func.tidal import *
 from bot.helpers.tidal_func.enums import *
@@ -35,18 +37,10 @@ def __displayTime__(seconds, granularity=2):
             result.append("{} {}".format(value, name))
     return ', '.join(result[:granularity])
 
-async def loginByWeb(bot, msg, c_id):
+async def loginByWeb(user):
     try:
         url = TIDAL_API.getDeviceCode()
-        await bot.edit_message_text(
-            chat_id=c_id,
-            message_id=msg.message.id, 
-            text=lang.select.TIDAL_AUTH_NEXT_STEP.format(
-                url,
-                __displayTime__(TIDAL_API.key.authCheckTimeout)
-            ),
-            disable_web_page_preview=True
-        )
+        await edit_message(user, None, lang.TIDAL_AUTH_NEXT_STEP.format(url,__displayTime__(TIDAL_API.key.authCheckTimeout)))
         start = time.time()
         elapsed = 0
         while elapsed < TIDAL_API.key.authCheckTimeout:
@@ -55,13 +49,11 @@ async def loginByWeb(bot, msg, c_id):
                 time.sleep(TIDAL_API.key.authCheckInterval + 1)
                 continue
 
-            await bot.edit_message_text(
-                chat_id=c_id,
-                message_id=msg.message.id, 
-                text=lang.select.TIDAL_AUTH_SUCCESS.format(
-                    __displayTime__(int(TIDAL_API.key.expiresIn))),
-                disable_web_page_preview=True,
-                reply_markup=common_auth_set("tidal")
+            await edit_message(
+                user, 
+                None, 
+                lang.TIDAL_AUTH_SUCCESS.format(__displayTime__(int(TIDAL_API.key.expiresIn))),
+                common_auth_set("tidal")
             )
 
             TIDAL_TOKEN.userid = TIDAL_API.key.userId
@@ -72,7 +64,7 @@ async def loginByWeb(bot, msg, c_id):
             TIDAL_TOKEN.save()
             return True, None
 
-        raise Exception("Login Operation timed out.")
+        raise Exception("Tidal Login Operation timed out.")
     except Exception as e:
         return False, e
 
@@ -82,7 +74,7 @@ def loginByConfig():
             return False, None
         # If token is valid, return True
         if TIDAL_API.verifyAccessToken(TIDAL_TOKEN.accessToken):
-            msg = lang.select.TIDAL_ALREADY_AUTH.format(
+            msg = lang.TIDAL_ALREADY_AUTH.format(
                 __displayTime__(int(TIDAL_TOKEN.expiresAfter - time.time())))
 
             TIDAL_API.key.countryCode = TIDAL_TOKEN.countryCode
@@ -91,7 +83,7 @@ def loginByConfig():
             return True, msg
         # If token is not valid but refresh token is, refresh token and return True
         if TIDAL_API.refreshAccessToken(TIDAL_TOKEN.refreshToken):
-            msg = lang.select.TIDAL_ALREADY_AUTH.format(
+            msg = lang.TIDAL_ALREADY_AUTH.format(
                 __displayTime__(int(TIDAL_API.key.expiresIn)))
 
             TIDAL_TOKEN.userid = TIDAL_API.key.userId
@@ -109,78 +101,81 @@ def loginByConfig():
 async def checkLoginTidal():
     db_auth, _ = set_db.get_variable("TIDAL_AUTH_DONE")
     if not db_auth:
-        return False, lang.select.TIDAL_NOT_AUTH
+        return False, lang.TIDAL_NOT_AUTH
     auth, msg = loginByConfig()
     if auth:
         return True, msg
     else:
-        return False, lang.select.TIDAL_NOT_AUTH
+        return False, lang.TIDAL_NOT_AUTH
 
-async def loginTidal(bot, msg, c_id):
-    await loginByWeb(bot, msg, c_id)
+async def loadTidal():
+    TIDAL_SETTINGS.read()
+    TIDAL_TOKEN.read()
+    await checkAPITidal()
 
 '''
 =================================
 START DOWNLOAD
 =================================
 '''
-async def startTidal(string, bot, c_id, r_id, u_id, u_name):
+async def startTidal(string, user):
     strings = string.split(" ")
     for item in strings:
         if aigpy.string.isNull(item):
             continue
         try:
-            etype, obj = TIDAL_API.getByString(item)
+            etype, obj, sid = TIDAL_API.getByString(item)
         except Exception as e:
-            LOGGER.warning(str(e) + " [" + item + "]")
+            await LOGGER.error(str(e) + " [" + item + "]", user)
             return
 
         try:
-            await start_type(etype, obj, bot, c_id, r_id, u_id, u_name)
+            await start_type(etype, obj, sid, user)
         except Exception as e:
-            LOGGER.warning(str(e))
+            await LOGGER.error(str(e), user)
 
-async def start_type(etype: Type, obj, bot, c_id, r_id, u_id, u_name):
+async def start_type(etype: Type, obj, sid, user):
     if etype == Type.Album:
-        await start_album(obj, bot, c_id, r_id, u_id, u_name)
+        await start_album(obj, sid, user)
     elif etype == Type.Track:
-        await start_track(obj, bot, c_id, r_id, u_id, u_name)
+        await start_track(obj, sid, user)
     elif etype == Type.Artist:
-        await start_artist(obj, bot, c_id, r_id, u_id, u_name)
+        await start_artist(obj, sid, user)
     elif etype == Type.Playlist:
-        await start_playlist(obj, bot, c_id, r_id, u_id, u_name)
+        await start_playlist(obj, sid, user)
     elif etype == Type.Mix:
-        await start_mix(obj, bot, c_id, r_id, u_id, u_name)
+        await start_mix(obj, sid, user)
 
-async def start_mix(obj: Mix, bot, c_id, r_id, u_id, u_name):
+async def start_mix(obj: Mix, sid, user):
     for index, item in enumerate(obj.tracks):
         album = TIDAL_API.getAlbum(item.album.id)
         item.trackNumberOnPlaylist = index + 1
-        await postCover(album, bot, c_id, r_id, u_name)
-        await downloadTrack(item, album, bot=bot, c_id=c_id, r_id=r_id, u_id=u_id)
+        await downloadTrack(item, album, user=user, type='mix', sid=sid)
 
-async def start_playlist(obj: Playlist, bot, c_id, r_id, u_id, u_name):
-    #TODO FIX COVER
+async def start_playlist(obj: Playlist, sid, user):
     tracks, videos = TIDAL_API.getItems(obj.uuid, Type.Playlist)
     for index, item in enumerate(tracks):
         album = TIDAL_API.getAlbum(item.album.id)
         item.trackNumberOnPlaylist = index + 1
-        #await postCover(album, bot, c_id, r_id)
-        await downloadTrack(item, album, obj, bot=bot, c_id=c_id, r_id=r_id, u_id=u_id)
+        await downloadTrack(item, album, obj, user=user, type='playlist', sid=sid)
 
-async def start_artist(obj: Artist, bot, c_id, r_id, u_id, u_name):
+async def start_artist(obj: Artist, sid, user):
     albums = TIDAL_API.getArtistAlbums(obj.id, TIDAL_SETTINGS.includeEP)
     for item in albums:
-        await start_album(item, bot, c_id, r_id, u_id, u_name)
+        await start_album(item, sid, user)
 
-async def start_track(obj: Track, bot, c_id, r_id, u_id, u_name):
+async def start_track(obj: Track, sid, user):
     album = TIDAL_API.getAlbum(obj.album.id)
-    await downloadTrack(obj, album, bot=bot, c_id=c_id, r_id=r_id, u_id=u_id, u_name=u_name)
+    await downloadTrack(obj, album, user=user, sid=sid)
 
-async def start_album(obj: Album, bot, c_id, r_id, u_id, u_name):
-    tracks, videos = TIDAL_API.getItems(obj.id, Type.Album)
-    await postCover(obj, bot, c_id, r_id, u_name)
-    await downloadTracks(tracks, obj, None, bot, c_id, r_id, u_id)
+async def start_album(obj: Album, sid, user):
+    tracks, _ = TIDAL_API.getItems(obj.id, Type.Album)
+    meta = await albumMeta(tracks[0], obj)
+    meta['item_id'] = sid
+    dupe = await check_music_exist(meta, user, 'album')
+    if dupe: return
+    await post_cover(meta, user)
+    await downloadTracks(tracks, obj, None, user=user)
 
 
 '''
@@ -191,7 +186,7 @@ TIDAL API CHECKS
 
 async def checkAPITidal():
     if not apiKey.isItemValid(TIDAL_SETTINGS.apiKeyIndex):
-        LOGGER.warning(lang.select.ERR_TD_API_KEY)
+        await LOGGER.error(lang.ERR_TD_API_KEY)
     else:
         index = TIDAL_SETTINGS.apiKeyIndex
         TIDAL_API.apiKey = apiKey.getItem(index)

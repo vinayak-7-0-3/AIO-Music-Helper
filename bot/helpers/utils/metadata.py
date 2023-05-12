@@ -2,7 +2,8 @@ import os
 import aigpy
 import music_tag
 
-from bot import LOGGER
+from bot.logger import LOGGER
+
 from mutagen import File
 from config import Config
 from mutagen.mp4 import MP4
@@ -14,6 +15,7 @@ from mutagen.id3 import TALB, TCOP, TDRC, TIT2, TPE1, TRCK, APIC, \
 
 
 base_metadata = {
+    'item_id': '',
     'title': '',
     'album': '',
     'artist': '',
@@ -24,15 +26,17 @@ base_metadata = {
     'upc': '',
     'isrc': '',
     'totaltracks': '',
-    'volume' : '',
-    'albumart' : '',
-    'thumbnail' : '',
+    'volume': '',
+    'totalvolume': '',
+    'albumart': '',
+    'thumbnail': '',
     'extension': '',
-    'duration': '',
+    'duration': '',  # in seconds
     'copyright': '',
     'genre': '',
     'provider': '',
-    'quality': ''
+    'quality': '',
+    'explicit': ''
 }
 
 async def set_metadata(audio_path, data):
@@ -143,7 +147,7 @@ async def savePic(handle, metadata):
         with open(album_art, "rb") as f:
             data = f.read()
     except Exception as e:
-        LOGGER.warning(e)
+        await LOGGER.error(e)
         return
 
     if ext == 'flac':

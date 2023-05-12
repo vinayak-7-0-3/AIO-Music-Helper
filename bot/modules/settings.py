@@ -1,10 +1,11 @@
+from bot import CMD
 from config import Config
-from bot import CMD, LOGGER
 from pyrogram import Client, filters
 from pyrogram.errors import MessageNotModified
 
 import bot.helpers.tidal_func.apikey as tidalAPI
 
+from bot.logger import LOGGER
 from bot.helpers.translations import lang
 from bot.helpers.qobuz.qopy import qobuz_api
 from bot.helpers.kkbox.kkapi import kkbox_api
@@ -13,38 +14,30 @@ from bot.helpers.qobuz.utils import human_quality
 from bot.helpers.buttons.settings_buttons import *
 from bot.helpers.database.postgres_impl import set_db
 from bot.helpers.tidal_func.settings import TIDAL_SETTINGS
-from bot.helpers.utils.auth_check import check_id, checkLogins
-from bot.helpers.tidal_func.events import loginTidal, getapiInfoTidal, checkAPITidal
+from bot.helpers.utils.tg_utils import check_id
+from bot.helpers.utils.providers import checkLogins
+from bot.helpers.utils.tg_utils import send_message, edit_message,fetch_user_details
+from bot.helpers.tidal_func.events import loginByWeb, getapiInfoTidal, checkAPITidal
 
 
 # MAIN COMMAND
 @Client.on_message(filters.command(CMD.SETTINGS))
 async def settings(bot, update):
     if await check_id(update.from_user.id, restricted=True):
-        await bot.send_message(
-            chat_id=update.chat.id,
-            text=lang.select.INIT_SETTINGS_MENU,
-            reply_markup=main_menu_set()
-        )
+        user = await fetch_user_details(update)
+        await send_message(user, lang.INIT_SETTINGS_MENU, markup=main_menu_set())
 
 
 # TIDAL SETTINGS PANEL
 @Client.on_callback_query(filters.regex(pattern=r"^tidalPanel"))
 async def tidal_panel_cb(bot, update):
     if await check_id(update.from_user.id, restricted=True):
+        user = await fetch_user_details(update.message)
         quality, _ = set_db.get_variable("TIDAL_QUALITY")
         api_index = TIDAL_SETTINGS.apiKeyIndex
         db_auth, _ = set_db.get_variable("TIDAL_AUTH_DONE")
-        await bot.edit_message_text(
-            chat_id=update.message.chat.id,
-            message_id=update.message.id,
-            text=lang.select.TIDAL_SETTINGS_PANEL.format(
-                quality,
-                api_index,
-                db_auth
-            ),
-            reply_markup=tidal_menu_set()
-        )
+        text = lang.TIDAL_SETTINGS_PANEL.format(quality, api_index, db_auth)
+        await edit_message(user, update.message.id, text, tidal_menu_set())
 
 
 # KKBOX SETTINGS PANEL
@@ -56,7 +49,7 @@ async def kkbox_panel_cb(bot, update):
         await bot.edit_message_text(
             chat_id=update.message.chat.id,
             message_id=update.message.id,
-            text=lang.select.KKBOX_SETTINGS_PANEL.format(
+            text=lang.KKBOX_SETTINGS_PANEL.format(
                 quality.upper(),
                 auth
             ),
@@ -73,7 +66,7 @@ async def qobuz_panel_cb(bot, update):
         await bot.edit_message_text(
             chat_id=update.message.chat.id,
             message_id=update.message.id,
-            text=lang.select.QOBUZ_SETTINGS_PANEL.format(
+            text=lang.QOBUZ_SETTINGS_PANEL.format(
                 quality,
                 auth
             ),
@@ -92,7 +85,7 @@ async def deezer_panel_cb(bot, update):
         await bot.edit_message_text(
             chat_id=update.message.chat.id,
             message_id=update.message.id,
-            text=lang.select.DEEZER_SETTINGS_PANEL.format(
+            text=lang.DEEZER_SETTINGS_PANEL.format(
                 quality,
                 auth,
                 auth_by,
@@ -106,6 +99,7 @@ async def deezer_panel_cb(bot, update):
 @Client.on_callback_query(filters.regex(pattern=r"^apiTidal"))
 async def tidal_api_cb(bot, update, refresh=False):
     if await check_id(update.from_user.id, restricted=True):
+        user = await fetch_user_details(update.message)
         option = update.data.split("_")[1]
         current_api = TIDAL_SETTINGS.apiKeyIndex
         api, platform, validity, quality = await getapiInfoTidal()
@@ -113,21 +107,17 @@ async def tidal_api_cb(bot, update, refresh=False):
         for number in api:
             info += f"<b>● {number} - {platform[number]}</b>\nFormats - <code>{quality[number]}</code>\nValid - <code>{validity[number]}</code>\n"
         if option == "panel" or refresh == True:
-            await bot.edit_message_text(
-                chat_id=update.message.chat.id,
-                message_id=update.message.id,
-                text=lang.select.TIDAL_SELECT_API_KEY.format(
+            text = lang.TIDAL_SELECT_API_KEY.format(
                     tidalAPI.getItem(current_api)['platform'],
                     tidalAPI.getItem(current_api)['formats'],
                     tidalAPI.getItem(current_api)['valid'],
                     info
-                ),
-                reply_markup=tidal_api_set(api, platform)
             )
+            await edit_message(user, update.message.id, text, tidal_api_set(api, platform))
         else:
             set_db.set_variable("TIDAL_API_KEY_INDEX", option, False, None)
             await update.answer(
-                lang.select.TIDAL_API_KEY_CHANGED.format(
+                lang.TIDAL_API_KEY_CHANGED.format(
                     int(option),
                     tidalAPI.getItem(int(option))['platform'],
                 )
@@ -147,7 +137,7 @@ async def dz_spatial_cb(bot, update):
         await bot.edit_message_text(
             chat_id=update.message.chat.id,
             message_id=update.message.id,
-            text=lang.select.DZ_SPATIAL_PANEL,
+            text=lang.DZ_SPATIAL_PANEL,
             reply_markup=deezer_spatial_buttons(pref_mhm1, allow_spatial)
         )
 
@@ -161,7 +151,7 @@ async def set_dz_spatial_cb(bot, update):
         await bot.edit_message_text(
             chat_id=update.message.chat.id,
             message_id=update.message.id,
-            text=lang.select.DZ_SPATIAL_PANEL,
+            text=lang.DZ_SPATIAL_PANEL,
             reply_markup=deezer_spatial_buttons(pref_mhm1, allow_spatial)
         )
 
@@ -170,46 +160,35 @@ async def set_dz_spatial_cb(bot, update):
 @Client.on_callback_query(filters.regex(pattern=r"^RMA"))
 async def rmauth_cb(bot, update):
     if await check_id(update.from_user.id, restricted=True):
+        user = await fetch_user_details(update.message)
         provider = update.data.split("_")[1]
         remove = update.data.split("_")[2]
         if remove == "warn":
-            await bot.edit_message_text(
-                chat_id=update.message.chat.id,
-                message_id=update.message.id,
-                text=lang.select.WARN_REMOVE_AUTH.format(provider.title()),
-                reply_markup=confirm_RMA_button()
-            )
+            text = lang.WARN_REMOVE_AUTH.format(provider.title())
+            await edit_message(user, update.message.id, text, confirm_RMA_button())
         else:
             if provider == "tidal":
                 set_db.set_variable("TIDAL_AUTH_TOKEN", 0, True, None)
                 set_db.set_variable("TIDAL_AUTH_DONE", False, False, None)
-                buttons = tidal_menu_set()
-            await bot.edit_message_text(
-                chat_id=update.message.chat.id,
-                message_id=update.message.id,
-                text=lang.select.RM_AUTH_SUCCESSFULL.format(provider.title()),
-                reply_markup=buttons
-            )
+            text = lang.RM_AUTH_SUCCESSFULL.format(provider.title())
+            await edit_message(user, update.message.id, text, tidal_menu_set())
 
 
 # GLOBAL FUNCTION TO ADD AUTH
 @Client.on_callback_query(filters.regex(pattern=r"^ADA"))
 async def add_auth_cb(bot, update):
     if await check_id(update.from_user.id, restricted=True):
+        user = await fetch_user_details(update.message)
         provider = update.data.split("_")[1]
         option = update.data.split("_")[2]
         if option == "panel":
             if provider == "tidal":
                 auth, msg = await checkLogins("tidal")
-                await bot.edit_message_text(
-                    chat_id=update.message.chat.id,
-                    message_id=update.message.id,
-                    text=lang.select.COMMON_AUTH_PANEL.format(provider.title(), msg),
-                    reply_markup=common_auth_set(provider)
-                )
+                text=lang.COMMON_AUTH_PANEL.format(provider.title(), msg)
+                await edit_message(user, update.message.id, text, common_auth_set(provider))
         else:
             if provider == "tidal":
-                await loginTidal(bot, update, update.message.chat.id)
+                await loginByWeb(user)
                 set_db.set_variable("TIDAL_AUTH_DONE", True, False, None)
             else:
                 pass
@@ -237,7 +216,7 @@ async def quality_cb(bot, update):
         await bot.edit_message_text(
             chat_id=update.message.chat.id,
             message_id=update.message.id,
-            text=lang.select.QUALITY_SET_PANEL.format(provider.title(), current_quality),
+            text=lang.QUALITY_SET_PANEL.format(provider.title(), current_quality),
             reply_markup=quality_buttons(provider, data)
         )
             
@@ -269,13 +248,13 @@ async def set_quality_cb(bot, update):
             await bot.edit_message_text(
                 chat_id=update.message.chat.id,
                 message_id=update.message.id,
-                text=lang.select.QUALITY_SET_PANEL.format(provider.title(), current_quality),
+                text=lang.QUALITY_SET_PANEL.format(provider.title(), current_quality),
                 reply_markup=quality_buttons(provider, data)
             )
         except MessageNotModified:
             pass
         except Exception as e:
-            LOGGER.warning(e)
+            await LOGGER.error(e)
 
 
 @Client.on_callback_query(filters.regex(pattern=r"^main_menu"))
@@ -285,7 +264,7 @@ async def main_menu_cb(bot, update):
             await bot.edit_message_text(
                 chat_id=update.message.chat.id,
                 message_id=update.message.id,
-                text=lang.select.INIT_SETTINGS_MENU,
+                text=lang.INIT_SETTINGS_MENU,
                 reply_markup=main_menu_set()
             )
         except:

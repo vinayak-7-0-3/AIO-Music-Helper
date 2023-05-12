@@ -4,7 +4,7 @@ import time
 import psycopg2
 import psycopg2.extras
 
-from bot import LOGGER
+from bot.logger import LOGGER
 
 class DataBaseHandle:
     _active_connections = []
@@ -30,7 +30,7 @@ class DataBaseHandle:
             self._conn = self._active_connections[0]
             self._connection_users.append(1)
         else:
-            LOGGER.debug("Established Connection")
+            LOGGER.debug("Database - Established Connection")
             self._conn = psycopg2.connect(self._dburl)
             self._connection_users.append(1)
             self._active_connections.append(self._conn)
@@ -55,7 +55,7 @@ class DataBaseHandle:
                 break
 
             except psycopg2.InterfaceError as e:
-                LOGGER.info(f"Attempting to Re-establish the connection to server {i} times. {e}")
+                LOGGER.debug(f"Database - Attempting to Re-establish the connection to server {i} times. {e}")
                 self.re_establish()
 
         return cur
@@ -66,11 +66,11 @@ class DataBaseHandle:
 
         try:
             if self._active_connections[0].closed != 0:
-                LOGGER.info("Re-establish Success.")
+                LOGGER.debug("Database - Re-establish Success.")
                 self._conn = psycopg2.connect(self._dburl)
                 self._active_connections[0] = self._conn
             else:
-                LOGGER.info("Re-establish Success Cache.")
+                LOGGER.debug("Database - Re-establish Success Cache.")
                 self._conn = self._active_connections[0]
         except:
             time.sleep(1)  # Blocking call ... this stage is panic.

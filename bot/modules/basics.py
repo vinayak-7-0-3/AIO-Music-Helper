@@ -1,16 +1,14 @@
-import asyncio
 from bot import CMD
 from pyrogram import Client, filters
 from bot.helpers.translations import lang
-from bot.helpers.utils.auth_check import get_chats
-from bot.helpers.utils.auth_check import check_id, get_chats
+from bot.helpers.utils.tg_utils import check_id, get_chats
 from bot.helpers.database.postgres_impl import users_db, admins_db, chats_db
 
 @Client.on_message(filters.command(CMD.START))
 async def start(bot, update):
     msg = await bot.send_message(
         chat_id=update.chat.id,
-        text=lang.select.WELCOME_MSG.format(
+        text=lang.WELCOME_MSG.format(
             update.from_user.first_name
         ),
         reply_to_message_id=update.id
@@ -38,7 +36,7 @@ async def auth_chat(bot, update):
 
         await bot.send_message(
             chat_id=update.chat.id,
-            text=lang.select.CHAT_AUTH_SUCCESS.format(
+            text=lang.CHAT_AUTH_SUCCESS.format(
                 type,
                 chat_id
             ),
@@ -64,7 +62,7 @@ async def add_admin(bot, update):
         else:
             await bot.send_message(
                 chat_id=update.chat.id,
-                text=lang.select.NO_ID_TO_AUTH,
+                text=lang.NO_ID_TO_AUTH,
                 reply_to_message_id=update.id
             )
             return
@@ -73,7 +71,7 @@ async def add_admin(bot, update):
 
         await bot.send_message(
             chat_id=update.chat.id,
-            text=lang.select.ADD_ADMIN_SUCCESS.format(
+            text=lang.ADD_ADMIN_SUCCESS.format(
                 admin_id
             ),
             reply_to_message_id=update.id

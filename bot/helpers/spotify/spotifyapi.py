@@ -10,7 +10,7 @@ class SpotifyAPI:
     def __init__(self):
         self.session = None
         self.token = None
-        self.quality = AudioQuality.HIGH
+        self.quality = AudioQuality.VERY_HIGH
         # If using mp3 - Set re-encode to True
         self.music_format = "ogg"
         self.reencode = False

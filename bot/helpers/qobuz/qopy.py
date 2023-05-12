@@ -1,21 +1,14 @@
 # From vitiko98/qobuz-dl
-# Wrapper for Qo-DL Reborn. This is a sligthly modified version
-# of qopy, originally written by Sorrow446. All credits to the
-# original author.
-
-import hashlib
-import logging
 import time
-
+import hashlib
 import requests
+
+from config import Config
 
 from bot.helpers.qobuz.bundle import Bundle
 
-from bot import LOGGER
+from bot.logger import LOGGER
 from bot.helpers.database.postgres_impl import set_db
-from config import Config
-
-logger = logging.getLogger(__name__)
 
 class Client:
     def __init__(self):
@@ -24,20 +17,27 @@ class Client:
             set_db.set_variable("QOBUZ_QUALITY", 6, False, None)
             quality = 6
         self.id = None
+        self.secrets = None
         self.session = requests.Session()
         self.base = "https://www.qobuz.com/api.json/0.2/"
         self.sec = None
-
         self.quality = int(quality)
         
 
     def api_call(self, epoint, **kwargs):
         if epoint == "user/login":
-            params = {
-                "email": kwargs["email"],
-                "password": kwargs["pwd"],
-                "app_id": self.id,
-            }
+            if kwargs.get('email'):
+                params = {
+                    "email": kwargs["email"],
+                    "password": kwargs["pwd"],
+                    "app_id": self.id,
+                }
+            else:
+                params = {
+                    "user_id": kwargs["userid"],
+                    "user_auth_token": kwargs["usertoken"],
+                    "app_id": self.id,
+                }
         elif epoint == "track/get":
             params = {"track_id": kwargs["id"]}
         elif epoint == "album/get":
@@ -81,7 +81,7 @@ class Client:
             track_id = kwargs["id"]
             fmt_id = kwargs["fmt_id"]
             if int(fmt_id) not in (5, 6, 7, 27):
-                LOGGER.warning("Invalid quality id: choose between 5, 6, 7 or 27")
+                raise Exception("QOBUZ : Invalid quality id: choose between 5, 6, 7 or 27")
             r_sig = "trackgetFileUrlformat_id{}intentstreamtrack_id{}{}{}".format(
                 fmt_id, track_id, unix, kwargs.get("sec", self.sec)
             )
@@ -98,37 +98,39 @@ class Client:
         r = self.session.get(self.base + epoint, params=params)
         if epoint == "user/login":
             if r.status_code == 401:
-                LOGGER.warning('Invalid QOBUZ Credentials given..... Disabling QOBUZ')
-                set_db.set_variable("QOBUZ_AUTH", False, False, None)
-                return
+                raise Exception('QOBUZ : Invalid credentials given..... Disabling QOBUZ')
             elif r.status_code == 400:
-                LOGGER.warning("Invalid QOBUZ app id. Please Recheck your credentials.... Disabling QOBUZ")
-                set_db.set_variable("QOBUZ_AUTH", False, False, None)
-                return
+                raise Exception("QOBUZ : Invalid App ID. Please Recheck your credentials.... Disabling QOBUZ")
             else:
-                set_db.set_variable("QOBUZ_AUTH", True, False, None)
+                pass
         elif (
             epoint in ["track/getFileUrl", "favorite/getUserFavorites"]
             and r.status_code == 400
         ):
-            LOGGER.warning("Invalid QOBUZ app secret. Please Recheck your credentials.... Disabling QOBUZ")
-            return None, True
+            raise Exception("QOBUZ : Invalid App Secret. Please recheck your credentials.... Disabling QOBUZ")
 
         #r.raise_for_status()
         return r.json()
 
-    def auth(self, email, pwd):
-        usr_info = self.api_call("user/login", email=email, pwd=pwd)
+    def auth(self, auth):
+        if auth=='email':
+            usr_info = self.api_call(
+                "user/login", 
+                email=Config.QOBUZ_EMAIL, 
+                pwd=Config.QOBUZ_PASSWORD)
+        else:
+            usr_info = self.api_call(
+                "user/login", 
+                userid=Config.QOBUZ_USER,
+                usertoken=Config.QOBUZ_TOKEN)
         if not usr_info:
             return
         if not usr_info["user"]["credential"]["parameters"]:
-            LOGGER.warning("Free accounts are not eligible to download tracks from QOBUZ. Disabling QOBUZ for now")
-            set_db.set_variable("QOBUZ_AUTH", False, False, None)
-            return
+            raise Exception("QOBUZ : Free accounts are not eligible to download tracks from QOBUZ. Disabling QOBUZ for now")
         self.uat = usr_info["user_auth_token"]
         self.session.headers.update({"X-User-Auth-Token": self.uat})
         self.label = usr_info["user"]["credential"]["parameters"]["short_label"]
-        LOGGER.info(f"Initiated QOBUZ.... Membership Status: {self.label}")
+        LOGGER.debug(f"Loaded QOBUZ - Membership Status: {self.label}")
 
     def multi_meta(self, epoint, key, id, type):
         total = 1
@@ -205,9 +207,11 @@ class Client:
     def get_tokens(self):
         bundle = Bundle()
         self.id = str(bundle.get_app_id())
-        self.sec = bundle.get_secret()
+        self.secrets = [
+            secret for secret in bundle.get_secrets().values() if secret
+        ]  # avoid empty fields
 
-    def login(self):
+    def login(self, auth):
         self.get_tokens()
 
         self.session.headers.update(
@@ -216,7 +220,19 @@ class Client:
                 "X-App-Id": self.id,
             }
         )
-        self.auth(Config.QOBUZ_EMAIL, Config.QOBUZ_PASSWORD)
+        self.auth(auth)
+        self.cfg_setup()
+
+    def cfg_setup(self):
+        for secret in self.secrets:
+            # Falsy secrets
+            if not secret:
+                continue
+            if self.test_secret(secret):
+                self.sec = secret
+                break
+        if self.sec is None:
+            raise LOGGER.debug("QOBUZ : Can't find any valid app secret")
         
 
 qobuz_api = Client()

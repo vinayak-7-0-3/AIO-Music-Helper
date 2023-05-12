@@ -4,8 +4,8 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 # Some common button addon - Main menu and Close
 exit_button = [
     [
-        InlineKeyboardButton(text=lang.select.MAIN_MENU_BUTTON, callback_data="main_menu"),
-        InlineKeyboardButton(text=lang.select.CLOSE_BUTTON, callback_data="close")
+        InlineKeyboardButton(text=lang.MAIN_MENU_BUTTON, callback_data="main_menu"),
+        InlineKeyboardButton(text=lang.CLOSE_BUTTON, callback_data="close")
     ]
 ]
 
@@ -13,43 +13,43 @@ def main_menu_set():
     inline_keyboard = [
         [
             InlineKeyboardButton(
-                text=lang.select.TG_AUTH_BUTTON,
+                text=lang.TG_AUTH_BUTTON,
                 callback_data="tgPanel"
             )
         ],
         [
             InlineKeyboardButton(
-                text=lang.select.TIDAL_BUTTON,
+                text=lang.TIDAL_BUTTON,
                 callback_data="tidalPanel"
             )
         ],
         [
             InlineKeyboardButton(
-                text=lang.select.KKBOX_BUTTON,
+                text=lang.KKBOX_BUTTON,
                 callback_data="kkboxPanel"
             )
         ],
         [
             InlineKeyboardButton(
-                text=lang.select.QOBUZ_BUTTON,
+                text=lang.QOBUZ_BUTTON,
                 callback_data="qobuzPanel"
             )
         ],
         [
             InlineKeyboardButton(
-                text=lang.select.DEEZER_BUTTON,
+                text=lang.DEEZER_BUTTON,
                 callback_data="deezerPanel"
             )
         ],
         [
             InlineKeyboardButton(
-                text=lang.select.SOUNDCLOUD_BUTTON,
+                text=lang.SOUNDCLOUD_BUTTON,
                 callback_data="scPanel"
             )
         ],
         [
             InlineKeyboardButton(
-                text=lang.select.CLOSE_BUTTON,
+                text=lang.CLOSE_BUTTON,
                 callback_data="close"
             )
         ]
@@ -61,19 +61,19 @@ def tidal_menu_set():
     inline_keyboard = [
         [
             InlineKeyboardButton(
-                text=lang.select.AUTH_BUTTON,
+                text=lang.AUTH_BUTTON,
                 callback_data="ADA_tidal_panel"
             )
         ],
         [
             InlineKeyboardButton(
-                text=lang.select.QUALITY_BUTTON,
+                text=lang.QUALITY_BUTTON,
                 callback_data="QA_tidal"
             )
         ],
         [
             InlineKeyboardButton(
-                text=lang.select.API_BUTTON,
+                text=lang.API_BUTTON,
                 callback_data="apiTidal_panel"
             )
         ]
@@ -99,11 +99,11 @@ def common_auth_set(provider):
     inline_keyboard = [
         [
             InlineKeyboardButton(
-                text=lang.select.ADD_AUTH_BUTTON,
+                text=lang.ADD_AUTH_BUTTON,
                 callback_data=f"ADA_{provider}_add"
             ),
             InlineKeyboardButton(
-                text=lang.select.REMOVE_AUTH_BUTTON,
+                text=lang.REMOVE_AUTH_BUTTON,
                 callback_data=f"RMA_{provider}_warn"
             )
         ]
@@ -115,11 +115,11 @@ def confirm_RMA_button():
     inline_keyboard = [
         [
             InlineKeyboardButton(
-                text=lang.select.YES_BUTTON,
+                text=lang.YES_BUTTON,
                 callback_data="RMA_tidal_yes"
             ),
             InlineKeyboardButton(
-                text=lang.select.NO_BUTTON,
+                text=lang.NO_BUTTON,
                 callback_data="RMA_tidal_no"
             )
         ]
@@ -132,25 +132,25 @@ def quality_buttons(provider, data=None):
         inline_keyboard = [
             [
                 InlineKeyboardButton(
-                    text=lang.select.MASTER_QUALITY,
+                    text=lang.MASTER_QUALITY,
                     callback_data="SQA_tidal_Master"
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text=lang.select.HIFI_QUALITY,
+                    text=lang.HIFI_QUALITY,
                     callback_data="SQA_tidal_HiFi"
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text=lang.select.HIGH_QUALITY,
+                    text=lang.HIGH_QUALITY,
                     callback_data="SQA_tidal_High"
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text=lang.select.NORMAL_QUALITY,
+                    text=lang.NORMAL_QUALITY,
                     callback_data="SQA_tidal_Normal"
                 )
             ]
@@ -170,25 +170,25 @@ def quality_buttons(provider, data=None):
         inline_keyboard = [
             [
                 InlineKeyboardButton(
-                    text=lang.select.Q_320,
+                    text=lang.Q_320,
                     callback_data="SQA_qobuz_5"
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text=lang.select.Q_LOSELESS,
+                    text=lang.Q_LOSELESS,
                     callback_data="SQA_qobuz_6"
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text=lang.select.Q_HIRES_7,
+                    text=lang.Q_HIRES_7,
                     callback_data="SQA_qobuz_7"
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text=lang.select.Q_HIRES_27,
+                    text=lang.Q_HIRES_27,
                     callback_data="SQA_qobuz_27"
                 )
             ]
@@ -197,19 +197,19 @@ def quality_buttons(provider, data=None):
         inline_keyboard = [
             [
                 InlineKeyboardButton(
-                    text=lang.select.HIFI_QUALITY,
+                    text=lang.HIFI_QUALITY,
                     callback_data="SQA_deezer_HiFi"
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text=lang.select.HIGH_QUALITY,
+                    text=lang.HIGH_QUALITY,
                     callback_data="SQA_deezer_High"
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text=lang.select.NORMAL_QUALITY,
+                    text=lang.NORMAL_QUALITY,
                     callback_data="SQA_deezer_Normal"
                 )
             ]
@@ -221,7 +221,7 @@ def kkbox_menu_set():
     inline_keyboard = [
         [
             InlineKeyboardButton(
-                text=lang.select.QUALITY_BUTTON,
+                text=lang.QUALITY_BUTTON,
                 callback_data="QA_kkbox"
             )
         ]
@@ -233,7 +233,7 @@ def qobuz_menu_set():
     inline_keyboard = [
         [
             InlineKeyboardButton(
-                text=lang.select.QUALITY_BUTTON,
+                text=lang.QUALITY_BUTTON,
                 callback_data="QA_qobuz"
             )
         ]
@@ -245,13 +245,13 @@ def deezer_menu_set():
     inline_keyboard = [
         [
             InlineKeyboardButton(
-                text=lang.select.QUALITY_BUTTON,
+                text=lang.QUALITY_BUTTON,
                 callback_data="QA_deezer"
             )
         ],
         [
             InlineKeyboardButton(
-                text=lang.select.SPATIAL_BUTTON,
+                text=lang.SPATIAL_BUTTON,
                 callback_data="spaDZ"
             )
         ]
@@ -260,10 +260,10 @@ def deezer_menu_set():
     return InlineKeyboardMarkup(inline_keyboard)
 
 def deezer_spatial_buttons(mhm1, spatial):
-    e_mhm1 = lang.select.DZ_ENABLE_MHM1
-    e_mha1 = lang.select.DZ_ENABLE_MHA1
-    e_spatial = lang.select.ENABLE_BUTTON
-    d_spatal = lang.select.DISABLE_BUTTON
+    e_mhm1 = lang.DZ_ENABLE_MHM1
+    e_mha1 = lang.DZ_ENABLE_MHA1
+    e_spatial = lang.ENABLE_BUTTON
+    d_spatal = lang.DISABLE_BUTTON
     if mhm1:
         e_mhm1 = e_mhm1 + " ✅" 
     else:

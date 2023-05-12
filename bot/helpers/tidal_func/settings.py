@@ -1,13 +1,4 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-'''
-@File    :   settings.py
-@Time    :   2020/11/08
-@Author  :   Yaronzz
-@Version :   3.0
-@Contact :   yaronhuang@foxmail.com
-@Desc    :
-'''
+# From yaronzz/Tidal-Media-Downloader
 import json
 import aigpy
 import base64
@@ -32,16 +23,7 @@ class Settings(aigpy.model.ModelBase):
     usePlaylistFolder = True
     albumFolderFormat = R"{ArtistName}/{Flag} {AlbumTitle} [{AlbumID}] [{AlbumYear}]"
     trackFileFormat = R"{TrackNumber} - {ArtistName} - {TrackTitle}{ExplicitFlag}"
-    videoFileFormat = R"{VideoNumber} - {ArtistName} - {VideoTitle}{ExplicitFlag}"
 
-    def getDefaultPathFormat(self, type: Type):
-        if type == Type.Album:
-            return R"{ArtistName}/{Flag} {AlbumTitle} [{AlbumID}] [{AlbumYear}]"
-        elif type == Type.Track:
-            return R"{TrackNumber} - {ArtistName} - {TrackTitle}{ExplicitFlag}"
-        elif type == Type.Video:
-            return R"{VideoNumber} - {ArtistName} - {VideoTitle}{ExplicitFlag}"
-        return ""
 
     def getAudioQuality(self, value):
         for item in AudioQuality:
@@ -54,17 +36,11 @@ class Settings(aigpy.model.ModelBase):
         if api_index:
             self.apiKeyIndex = int(api_index)
 
-        self.trackFileFormat = Config.TIDAL_TRACK_FORMAT
-
-        if self.albumFolderFormat is None:
-            self.albumFolderFormat = self.getDefaultPathFormat(Type.Album)
-        if self.trackFileFormat is None:
-            self.trackFileFormat = self.getDefaultPathFormat(Type.Track)
-        if self.videoFileFormat is None:
-            self.videoFileFormat = self.getDefaultPathFormat(Type.Video)
+        #self.trackFileFormat = Config.TIDAL_TRACK_FORMAT
 
 
 class TokenSettings(aigpy.model.ModelBase):
+    _path_ = "./tidal-dl.token.json"
     userid = None
     countryCode = None
     accessToken = None
@@ -84,22 +60,22 @@ class TokenSettings(aigpy.model.ModelBase):
         except:
             return string
 
-    def read(self, path):
-        self._path_ = path
+    def read(self):
         txt = aigpy.file.getContent(self._path_)
         if txt == "" or txt is None:
-            _, txt = set_db.get_variable("AUTH_TOKEN")
+            _, txt = set_db.get_variable("TIDAL_AUTH_TOKEN")
         try:
             if len(txt) > 0:
                 data = json.loads(self.__decode__(txt))
                 aigpy.model.dictToModel(data, self)
+                set_db.set_variable("TIDAL_AUTH_DONE", True, False, None)
         except TypeError:
             set_db.set_variable("TIDAL_AUTH_DONE", False, False, None)
 
     def save(self):
         data = aigpy.model.modelToDict(self)
         txt = json.dumps(data)
-        set_db.set_variable("AUTH_TOKEN", 0, True, self.__encode__(txt))
+        set_db.set_variable("TIDAL_AUTH_TOKEN", 0, True, self.__encode__(txt))
         aigpy.file.write(self._path_, self.__encode__(txt), 'wb')
         set_db.set_variable("TIDAL_AUTH_DONE", True, False, None)
 

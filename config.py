@@ -37,6 +37,8 @@ class Config(object):
         exit(1)
     
     IS_BOT_PUBLIC = getenv("IS_BOT_PUBLIC", True)
+    LOG_CHAT = getenv("LOG_CHAT", "")
+    LOG_ALL_INFO = getenv("LOG_ALL_INFO", "")
 
     try:
         AUTH_USERS = set(int(x) for x in getenv("AUTH_USERS").split())
@@ -62,12 +64,15 @@ class Config(object):
     BOT_LANGUAGE = getenv("BOT_LANGUAGE", "en")
     MENTION_USERS = getenv("MENTION_USERS", False)
     ANIT_SPAM_MODE = getenv("ANIT_SPAM_MODE", False)
+    
 #--------------------
 
 # TIDAL VARIABLES
 
 #--------------------
-    TIDAL_TRACK_FORMAT = getenv("TIDAL_TRACK_FORMAT", "{TrackTitle} - {ArtistName}")
+    PLAYLIST_NAME_FORMAT = getenv("PLAYLIST_NAME_FORMAT", "{title} - Playlist")
+    ALBUM_NAME_FORMAT = getenv("ALBUM_PATH_FORMAT", "{album} - {albumartist}")
+    TRACK_NAME_FORMAT = getenv("TRACK_NAME_FORMAT", "{title} - {artist}")
 #--------------------
 
 # KKBOX VARIABLES
@@ -83,7 +88,8 @@ class Config(object):
 #--------------------
     QOBUZ_EMAIL = getenv("QOBUZ_EMAIL", "")
     QOBUZ_PASSWORD = getenv("QOBUZ_PASSWORD", "")
-    QOBUZ_TRACK_FORMAT = getenv("QOBUZ_TRACK_FORMAT", "{tracknumber}. {tracktitle}")
+    QOBUZ_USER = getenv("QOBUZ_USER", "")
+    QOBUZ_TOKEN = getenv("QOBUZ_TOKEN", "")
 #--------------------
 
 # DEEZER VARIABLES
@@ -104,3 +110,16 @@ class Config(object):
 
     if BOT_USERNAME.startswith("@"):
         BOT_USERNAME = BOT_USERNAME[1:]
+
+#--------------------
+
+# AUDIO SAVING OPTIONS (Dumping)
+
+#--------------------
+    COPY_AUDIO_FILES = getenv('COPY_AUDIO_FILES', False)
+    DUPLICATE_CHECK = getenv('DUPLICATE_CHECK', False)
+    SPOTIFY_CHAT = getenv('SPOTIFY_CHAT', None)
+    QOBUZ_CHAT = getenv('QOBUZ_CHAT', None)
+    TIDAL_CHAT = getenv('TIDAL_CHAT', None)
+    DEEZER_CHAT = getenv('DEEZER_CHAT', None)
+    KKBOX_CHAT = getenv('KKBOX_CHAT', None)

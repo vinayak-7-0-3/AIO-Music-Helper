@@ -2,13 +2,13 @@ import re
 import os
 import aigpy
 
-from bot import LOGGER
 from config import Config
 from urllib.parse import urlparse
-from pathvalidate import sanitize_filename
 
-from bot.helpers.translations import lang
+from bot.logger import LOGGER
 from bot.helpers.kkbox.kkapi import kkbox_api
+from bot.helpers.utils.common import get_file_name
+from bot.helpers.utils.tg_utils import send_message
 from bot.helpers.database.postgres_impl import set_db
 from bot.helpers.utils.metadata import base_metadata, set_metadata
 
@@ -21,11 +21,11 @@ def k_url_parse(link):
     elif url.hostname == 'www.kkbox.com':
         path_match = re.match(r'^\/[a-z]{2}\/[a-z]{2}\/(song|album|artist|playlist)\/([a-zA-Z0-9-_]{18})', url.path)
     else:
-        LOGGER.warning(f'Invalid URL: {link}')
+        LOGGER.debug(f'Invalid URL: {link}')
         return None, None
 
     if not path_match:
-        LOGGER.warning(f'Invalid URL: {link}')
+        LOGGER.debug(f'Invalid URL: {link}')
         return None, None
     
     type = path_match.group(1)
@@ -41,7 +41,7 @@ async def getAlbumArt(data, r_id, res='80x80', type='thumb'):
     except KeyError:
         url = data['album_photo_info']['url_template']
     except Exception as e:
-        LOGGER.warning(e)
+        await LOGGER.error(e)
         return
 
     url = url.replace('{format}', "jpg")
@@ -55,34 +55,24 @@ async def getAlbumArt(data, r_id, res='80x80', type='thumb'):
     aigpy.net.downloadFile(url, thumb_path)
     return thumb_path
 
-async def postAlbumData(data, r_id, bot, update, u_name):
+async def getAlbumMeta(data):
     url = data['album']['album_photo_info']['url_template']
     url = url.replace('{format}', "jpg")
     url = url.replace('fit/{width}x{height}', 'original')
     url = url.replace('cropresize/{width}x{height}', 'original')
 
+    metadata = base_metadata.copy()
+    metadata['title'] = data['album']['album_name']
+    metadata['artist'] = data['album']['artist_name']
+    metadata['date'] = data['album']['album_date']
+    # TODO Add more details here
     no_tracks = 0
     for song in data['songs']:
         no_tracks+=1
+    metadata['totaltracks'] = no_tracks
+    return metadata
 
-    post_details = lang.select.KKBOX_ALBUM_DETAILS.format(
-            data['album']['album_name'],
-            data['album']['artist_name'],
-            data['album']['album_date'],
-            no_tracks
-    )
-
-    if Config.MENTION_USERS == "True":
-            post_details = post_details + lang.select.USER_MENTION_ALBUM.format(u_name)
-    
-    await bot.send_photo(
-        chat_id=update.chat.id,
-        photo=url,
-        caption=post_details,
-        reply_to_message_id=r_id
-    )
-
-async def dlTrack(id, metadata, bot, update, r_id, u_name=None, type=None):
+async def dlTrack(id, metadata, user, type=None):
     format = metadata['quality']
     play_mode = None
     if format == 'mp3_128k_chromecast':
@@ -95,43 +85,20 @@ async def dlTrack(id, metadata, bot, update, r_id, u_name=None, type=None):
             url = fmt['url']
             break
 
-    temp_path = Config.DOWNLOAD_BASE_DIR + f"/kkbox/{r_id}/"
-    if not os.path.isdir(temp_path):
-        os.makedirs(temp_path)
-
-    file_name = f"{metadata['title']}.{metadata['extension']}"
-    file_name = sanitize_filename(file_name)
-
-    audio_path = temp_path + file_name
+    audio_path, _, _ = await get_file_name(user, metadata, type)        
 
     # MP3 HAS NO DRM
     if format == 'mp3_128k_chromecast':
         aigpy.net.downloadFile(url, audio_path)
     else:
         kkbox_api.kkdrm_dl(url, audio_path)
-    LOGGER.info(f"Successfully downloaded {metadata['title']}")
+    await LOGGER.info(f"Successfully downloaded {metadata['title']}")
 
     await set_metadata(audio_path, metadata)
 
-    if type == 'track' and Config.MENTION_USERS == "True":
-        text = lang.select.USER_MENTION_TRACK.format(u_name)
-    else:
-        text = None
+    await send_message(user, audio_path, 'audio', metadata)
 
-    await bot.send_audio(
-        chat_id=update.chat.id,
-        audio=audio_path,
-        caption=text,
-        duration=int(metadata['duration']),
-        performer=metadata['artist'],
-        title=metadata['title'],
-        thumb=metadata['thumbnail'],
-        reply_to_message_id=r_id
-    )
-
-    os.remove(metadata['thumbnail'])
     os.remove(audio_path)
-    #os.rmdir(temp_path)
 
 async def get_metadata(track_data, album_data, r_id):
     metadata = base_metadata.copy()
@@ -184,7 +151,7 @@ async def get_quality(track_data):
     quality, _ = set_db.get_variable("KKBOX_QUALITY")
 
     if not quality in track_data['audio_quality']:
-        LOGGER.info(f'Quality - {quality} not available for the track - {track_data["song_name"]}')
+        await LOGGER.error(f'KKBOX - Quality - {quality} not available for the track - {track_data["song_name"]}')
         quality = track_data['audio_quality'][-1]
 
     format = {
