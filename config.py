@@ -20,10 +20,12 @@ class Config(object):
 #--------------------
     try:
         TG_BOT_TOKEN = getenv("TG_BOT_TOKEN")
-        APP_ID = int(getenv("APP_ID", 123))
+        APP_ID = getenv("APP_ID")
         API_HASH = getenv("API_HASH")
+        DATABASE_URL = getenv("DATABASE_URL")
+        BOT_USERNAME = getenv("BOT_USERNAME")
     except:
-        LOGGER.warning("Essential TG Configs are missing")
+        LOGGER.warning("Essential Configs are missing")
         exit(1)
 
     try:
@@ -50,24 +52,13 @@ class Config(object):
     # Just name of the Downloads Folder
     DOWNLOADS_FOLDER = getenv("DOWNLOADS_FOLDER", "DOWNLOADS")
     DOWNLOAD_BASE_DIR = WORK_DIR + DOWNLOADS_FOLDER
-    
-    BOT_USERNAME = getenv("BOT_USERNAME", "")
-    if not BOT_USERNAME:
-        LOGGER.warning("NO BOT USERNAME FOUND")
-        exit(1)
-    
-    DATABASE_URL = getenv("DATABASE_URL")
-    if not DATABASE_URL:
-        LOGGER.warning("NO DATABASE URL FOUND")
-        exit(1)
 
     BOT_LANGUAGE = getenv("BOT_LANGUAGE", "en")
-    MENTION_USERS = getenv("MENTION_USERS", False)
     ANIT_SPAM_MODE = getenv("ANIT_SPAM_MODE", False)
     
 #--------------------
 
-# TIDAL VARIABLES
+# FILE/FOLDER NAMING
 
 #--------------------
     PLAYLIST_NAME_FORMAT = getenv("PLAYLIST_NAME_FORMAT", "{title} - Playlist")
@@ -107,10 +98,6 @@ class Config(object):
 #--------------------
     SPOTIFY_EMAIL = getenv("SPOTIFY_EMAIL", "")
     SPOTIFY_PASS = getenv("SPOTIFY_PASS", "")
-
-    if BOT_USERNAME.startswith("@"):
-        BOT_USERNAME = BOT_USERNAME[1:]
-
 #--------------------
 
 # AUDIO SAVING OPTIONS (Dumping)
@@ -123,3 +110,7 @@ class Config(object):
     TIDAL_CHAT = getenv('TIDAL_CHAT', None)
     DEEZER_CHAT = getenv('DEEZER_CHAT', None)
     KKBOX_CHAT = getenv('KKBOX_CHAT', None)
+
+
+    if BOT_USERNAME.startswith("@"):
+        BOT_USERNAME = BOT_USERNAME[1:]

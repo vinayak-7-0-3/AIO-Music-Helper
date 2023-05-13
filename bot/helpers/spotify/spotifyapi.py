@@ -33,7 +33,7 @@ class SpotifyAPI:
             )
             is_playable = info["tracks"][0]["is_playable"]
             if not is_playable:
-                return None, lang.select.ERR_SPOT_NOT_AVAIL
+                return None, lang.ERR_SPOT_NOT_AVAIL
             return info['tracks'][0], None
         except:
             pass

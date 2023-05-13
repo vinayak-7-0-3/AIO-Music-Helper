@@ -6,8 +6,10 @@ import requests
 from bot import Config
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
+from pathvalidate import sanitize_filepath
 
 from bot.helpers.translations import lang
+from bot.helpers.utils.metadata import format_string
 from bot.helpers.buttons.extra_button import get_music_button
 from bot.helpers.database.postgres_impl import music_db
 from bot.helpers.utils.tg_utils import send_message, copy_message, \
@@ -46,38 +48,19 @@ async def get_file_name(user, meta, type='track'):
         file = album + '/' + (await format_string(Config.TRACK_NAME_FORMAT, meta, user)) + f".{meta['extension']}"
     elif type == 'playlist' or type == 'mix':
         playlist = base_path + (await format_string(Config.PLAYLIST_NAME_FORMAT, meta, user)) + f".{meta['extension']}"
+        file = playlist + '/' + (await format_string(Config.TRACK_NAME_FORMAT, meta, user)) + f".{meta['extension']}"
+    file = sanitize_filepath(file)
     if album:
+        album = sanitize_filepath(album)
         os.makedirs(album, exist_ok=True)
     elif playlist:
+        playlist = sanitize_filepath(playlist)
         os.makedirs(playlist, exist_ok=True)
     else:
+        base_path = sanitize_filepath(base_path)
         os.makedirs(base_path, exist_ok=True)
 
     return file, album, playlist
-
-async def format_string(text, data, user=None):
-    text = text.replace(R'{title}', data['title'])
-    text = text.replace(R'{album}', data['album'])
-    text = text.replace(R'{artist}', data['artist'])
-    text = text.replace(R'{albumartist}', data['albumartist'])
-    text = text.replace(R'{tracknumber}', str(data['tracknumber']))
-    text = text.replace(R'{date}', str(data['date']))
-    text = text.replace(R'{upc}', str(data['upc']))
-    text = text.replace(R'{isrc}', str(data['isrc']))
-    text = text.replace(R'{totaltracks}', str(data['totaltracks']))
-    text = text.replace(R'{volume}', str(data['volume']))
-    text = text.replace(R'{totalvolume}', str(data['totalvolume']))
-    text = text.replace(R'{extension}', data['extension'])
-    text = text.replace(R'{duration}', str(data['duration']))
-    text = text.replace(R'{copyright}', data['copyright'])
-    text = text.replace(R'{genre}', data['genre'])
-    text = text.replace(R'{provider}', data['provider'].title())
-    text = text.replace(R'{quality}', data['quality'])
-    text = text.replace(R'{explicit}', str(data['explicit']))
-    if user:
-        text = text.replace(R'{user}', user['name'])
-        text = text.replace(R'{username}', user['user_name'])
-    return text
 
 async def handle_upload(user, path, meta, type='track', text=None):
     file_type = 'pic' if type=='album' else 'audio'

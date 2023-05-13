@@ -7,6 +7,8 @@ from bot.helpers.translations import lang
 from bot.helpers.database.postgres_impl import users_db, admins_db, chats_db,\
     user_settings, set_db
 
+from bot.helpers.utils.metadata import format_string
+
 admins = []
 allowed_chats = []
 allowed_users = []
@@ -51,7 +53,11 @@ async def send_message(details, to_send, type='text', extra=None, markup=None, c
             path = Config.DOWNLOAD_BASE_DIR + f"/{extra['provider']}/{details['r_id']}/{extra['title']}_thumb.jpg"
             aigpy.net.downloadFile(extra['thumbnail'], path)
             thumb = path
-        caption = None
+        
+        try:
+            caption = await format_string(lang.TRACK_TEMPLATE, extra, details)
+        except Exception as e:
+            caption = None
         msg = await aio.send_audio(
             chat_id=chat_id,
             audio=to_send,
@@ -181,7 +187,7 @@ async def check_id(id=None, message=None, restricted=False):
         if Config.ANIT_SPAM_MODE == "True":
             check = user_settings.get_var(id, "ON_TASK")      
             if check:
-                await message.reply_text(lang.select.ANTI_SPAM_WAIT)
+                await message.reply_text(lang.ANTI_SPAM_WAIT)
                 return False          
 
         if Config.IS_BOT_PUBLIC == "True":

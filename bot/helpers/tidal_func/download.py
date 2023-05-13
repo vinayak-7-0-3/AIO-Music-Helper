@@ -108,12 +108,10 @@ async def downloadTrack(track: Track, album=None, playlist=None, partSize=104857
 
         # lyrics
         try:
-            metadata['lyrics'] = TIDAL_API.getLyrics(track.id).subtitles
-            if TIDAL_SETTINGS.lyricFile:
-                lrcPath = path.rsplit(".", 1)[0] + '.lrc'
-                aigpy.fileHelper.write(lrcPath, metadata['lyrics'], 'w')
+            lyrics = TIDAL_API.getLyrics(track.id).subtitles
         except:
-            pass
+            lyrics = None
+        metadata['lyrics'] = lyrics if lyrics else ""
 
         metadata['thumbnail'] = TIDAL_API.getCoverUrl(album.cover, "80", "80")
         await set_metadata(path, metadata)

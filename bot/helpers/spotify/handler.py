@@ -130,7 +130,9 @@ class SpotifyDL:
             metadata['upc'] = data['external_ids']['upc']
             metadata['totaltracks'] = data['total_tracks']
             metadata['duration'] = sum(map(lambda x: x['duration_ms'], data['tracks']['items'])) / 1000
-            metadata['copyright'] = data['copyrights'][0]['text']
+            try:
+                metadata['copyright'] = data['copyrights'][0]['text']
+            except: pass
 
         metadata['title'] = data["name"]
         metadata['quality'] = str(spotify.quality).replace('AudioQuality.', '').title().replace('_', '')
