@@ -11,3 +11,5 @@ pycryptodomex
 Pillow
 psycopg2-binary
 pathvalidate
+music_tag
+git+https://github.com/kokarare1212/librespot-python#egg=librespot

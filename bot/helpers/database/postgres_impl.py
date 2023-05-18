@@ -28,6 +28,11 @@ DEEZER_QUALITY - Quality Of DEEZER Tracks ()
 DEEZER_SPATIAL - Prefer 360RA in FLAC (True/False)
 DEEZER_MHM1 - Prefer MHM1 codec for Spatial
 
+SPOTIFY_QUALITY  - Quality Of Spotify Tracks (HIGH/VERYHIGH)
+SPOTIFY_REENCODE - If to re-encode the downloaded tracks before uploading (True/False)
+SPOTIFY_FORMAT - Format of Tracks downloaded (mp3/ogg)
+SPOTIFY_AUTH - Status of Spotify Authentication (True/False)
+
 
 AUTH_CHATS - Chats where bot is allowed
 AUTH_USERS - Users who can use bot

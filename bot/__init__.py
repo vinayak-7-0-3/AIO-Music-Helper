@@ -11,6 +11,12 @@ logging.getLogger("pyrogram").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 logging.getLogger("aiohttp").setLevel(logging.WARNING)
 logging.getLogger("charset_normalizer").setLevel(logging.WARNING)
+logging.getLogger("Librespot:Session").setLevel(logging.WARNING)
+logging.getLogger("Librespot:MercuryClient").setLevel(logging.WARNING)
+logging.getLogger("Librespot:TokenProvider").setLevel(logging.WARNING)
+logging.getLogger("librespot.audio").setLevel(logging.WARNING)
+logging.getLogger("Librespot:ApiClient").setLevel(logging.WARNING)
+logging.getLogger("pydub").setLevel(logging.WARNING)
 
 bot = Config.BOT_USERNAME
 

@@ -33,6 +33,8 @@ class EN(object):
     DEEZER_NOT_AUTH = "Deezer credentials not provided"
     # QOBUZ
     QOBUZ_NOT_AUTH = "Qobuz credentials not provided"
+    # SPOTIFY
+    SPOTIFY_NOT_AUTH = "Spotify credentials not provided"
 
 
 
@@ -77,6 +79,16 @@ class EN(object):
 📅 <b>Release Date :</b> {2}
 🔢 <b>Total Tracks :</b> {3}
 """
+
+
+    # SPOTIFY
+    SPOTIFY_ALBUM_DETAILS = """
+🎶 <b>Title :</b> {0}
+👤 <b>Artist :</b> {1}
+📅 <b>Release Date :</b> {2}
+🔢 <b>Total Tracks :</b> {3}
+"""
+
 
     QUALITY_ADDON = "💫 <b>Quality :</b> {} \n"
 
@@ -203,6 +215,7 @@ API Key Valid : <code>{2}</code>
 # ERRORS
 #
 #----------------
+    ERR_LINK_RECOGNITION = "Sorry, couldn't recognise the given link."
     # QOBUZ
     ERR_QOBUZ_NOT_STREAMABLE = "This album is not available to download."
     ERR_NO_LINK = "No link provided to download from"
@@ -213,3 +226,5 @@ API Key Valid : <code>{2}</code>
     ERR_DZ_QUALITY_FALLBACK = "Selected quality not available for this track. Falling back to {}"
     # TIDAL
     ERR_TD_API_KEY = "Tidal API Key not valid. Please change your API Key."
+    # SPOTIFY
+    ERR_SPOT_NOT_AVAIL = "Sorry, Track not available"

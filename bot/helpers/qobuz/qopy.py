@@ -24,7 +24,6 @@ class Client:
             set_db.set_variable("QOBUZ_QUALITY", 6, False, None)
             quality = 6
         self.id = None
-        self.secrets = None
         self.session = requests.Session()
         self.base = "https://www.qobuz.com/api.json/0.2/"
         self.sec = None
@@ -101,23 +100,27 @@ class Client:
             if r.status_code == 401:
                 LOGGER.warning('Invalid QOBUZ Credentials given..... Disabling QOBUZ')
                 set_db.set_variable("QOBUZ_AUTH", False, False, None)
+                return
             elif r.status_code == 400:
                 LOGGER.warning("Invalid QOBUZ app id. Please Recheck your credentials.... Disabling QOBUZ")
                 set_db.set_variable("QOBUZ_AUTH", False, False, None)
+                return
             else:
-                pass
+                set_db.set_variable("QOBUZ_AUTH", True, False, None)
         elif (
             epoint in ["track/getFileUrl", "favorite/getUserFavorites"]
             and r.status_code == 400
         ):
             LOGGER.warning("Invalid QOBUZ app secret. Please Recheck your credentials.... Disabling QOBUZ")
-            set_db.set_variable("QOBUZ_AUTH", False, False, None)
+            return None, True
 
-        r.raise_for_status()
+        #r.raise_for_status()
         return r.json()
 
     def auth(self, email, pwd):
         usr_info = self.api_call("user/login", email=email, pwd=pwd)
+        if not usr_info:
+            return
         if not usr_info["user"]["credential"]["parameters"]:
             LOGGER.warning("Free accounts are not eligible to download tracks from QOBUZ. Disabling QOBUZ for now")
             set_db.set_variable("QOBUZ_AUTH", False, False, None)
@@ -199,28 +202,14 @@ class Client:
         except:
             return False
 
-    def cfg_setup(self):
-        for secret in self.secrets:
-            # Falsy secrets
-            if not secret:
-                continue
-
-            if self.test_secret(secret):
-                self.sec = secret
-                break
-
-        if self.sec is None:
-            LOGGER.warning("Can't find any valid app secret for QOBUZ (Recheck your credentials). Disabling QOBUZ")
-
     def get_tokens(self):
         bundle = Bundle()
         self.id = str(bundle.get_app_id())
-        self.secrets = [
-            secret for secret in bundle.get_secrets().values() if secret
-        ]  # avoid empty fields
+        self.sec = bundle.get_secret()
 
     def login(self):
         self.get_tokens()
+
         self.session.headers.update(
             {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0",
@@ -228,7 +217,6 @@ class Client:
             }
         )
         self.auth(Config.QOBUZ_EMAIL, Config.QOBUZ_PASSWORD)
-        self.cfg_setup()
-        set_db.set_variable("QOBUZ_AUTH", True, False, None)
+        
 
 qobuz_api = Client()

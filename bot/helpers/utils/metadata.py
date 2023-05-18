@@ -1,14 +1,16 @@
 import os
 import aigpy
+import music_tag
 
 from bot import LOGGER
 from mutagen import File
 from config import Config
-from mutagen.flac import FLAC
+from mutagen.mp4 import MP4
 from mutagen import flac, mp4
 from mutagen.mp3 import EasyMP3
-from mutagen.mp4 import MP4
-from mutagen.id3 import TALB, TCOP, TDRC, TIT2, TPE1, TRCK, APIC, TCON, TOPE, TSRC, USLT
+from mutagen.flac import FLAC
+from mutagen.id3 import TALB, TCOP, TDRC, TIT2, TPE1, TRCK, APIC, \
+    TCON, TOPE, TSRC, USLT, TPOS, TXXX
 
 
 base_metadata = {
@@ -19,6 +21,7 @@ base_metadata = {
     'tracknumber': '',
     'date': '',
     'lyrics': '',
+    'upc': '',
     'isrc': '',
     'totaltracks': '',
     'volume' : '',
@@ -43,6 +46,9 @@ async def set_metadata(audio_path, data):
         await set_m4a(data, handle)
     elif ext == 'mp3':
         await set_mp3(data, handle)
+    elif ext == 'ogg':
+        handle = music_tag.load_file(audio_path)
+        await set_ogg(data, handle)
 
 async def set_flac(data, handle):
     if handle.tags is None:
@@ -81,7 +87,30 @@ async def set_m4a(data, handle):
     handle.save()
     return True
 
+async def set_ogg(data, handle):
+    try:
+        # Using music_tag cuz its less complex dealing ogg
+        handle['title'] = data['title']
+        handle['album'] = data['album']
+        handle['albumartist'] = data['albumartist']
+        handle['artist'] = data['artist']
+        #handle['copyright'] = data['copyright']
+        handle['tracknumber'] = str(data['tracknumber'])
+        handle['totaltracks'] = str(data['totaltracks'])
+        handle['discnumber'] = str(data['totaltracks'])
+        #handle.tags['disctotal'] = 
+        handle['genre'] = data['genre']
+        handle['year'] = data['date']
+        #handle.tags['composer'] = 
+        handle['isrc'] = data['isrc']
+        handle['lyrics'] = data['lyrics']
+        await savePic(handle, data)
+        handle.save()
+    except:
+        pass
+
 async def set_mp3(data, handle):
+    # ID3
     if handle.tags is None:
             handle.add_tags()
     handle.tags.add(TIT2(encoding=3, text=data['title']))
@@ -90,7 +119,8 @@ async def set_mp3(data, handle):
     handle.tags.add(TPE1(encoding=3, text=data['artist']))
     handle.tags.add(TCOP(encoding=3, text=data['copyright']))
     handle.tags.add(TRCK(encoding=3, text=str(data['tracknumber'])))
-    # handle.tags.add(TRCK(encoding=3, text=self.discnum))
+    handle.tags.add(TPOS(encoding=3, text=str(data['volume'])))
+    handle.tags.add(TXXX(encoding=3, text=str(data['totaltracks'])))
     handle.tags.add(TCON(encoding=3, text=data['genre']))
     handle.tags.add(TDRC(encoding=3, text=data['date']))
     #handle.tags.add(TCOM(encoding=3, text=self.composer))
@@ -129,6 +159,9 @@ async def savePic(handle, metadata):
     if ext == 'mp4' or ext == 'm4a':
         pic = mp4.MP4Cover(data)
         handle.tags['covr'] = [pic]
+
+    if ext =='ogg':
+        handle['artwork'] = data
     
     os.remove(album_art)
 
