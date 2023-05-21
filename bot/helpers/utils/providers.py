@@ -74,6 +74,7 @@ async def loadConfigs():
         await deezerdl.login(True)
     else:
         set_db.set_variable("DEEZER_AUTH", False, False, None)
+    # SPOTIFY
     if not "" in {Config.SPOTIFY_EMAIL, Config.SPOTIFY_PASS}:
         await spotify_dl.login()
         set_db.set_variable("SPOTIFY_AUTH", True, False, None)

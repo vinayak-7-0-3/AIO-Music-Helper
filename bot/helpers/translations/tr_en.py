@@ -136,7 +136,19 @@ API Key Valid : <code>{2}</code>
 <b>Auth Method : </b><code>{2}</code>
 <b>Get Spatial : </b><code>{3}</code>
     """
+    #
+    # DEEZER PANEL
+    #
+    SPOTIFY_SETTINGS_PANEL = """
+<b>Configure Spotify Settings Here</b>
 
+<b><u>CURRENT SETTINGS</u></b>
+
+<b>Quality : </b><code>{0}</code>
+<b>Auth Status : </b><code>{1}</code>
+<b>ReEncode Files : </b><code>{2}</code>
+<b>File Format : </b><code>{3}</code>
+"""
     
 
 
@@ -153,7 +165,7 @@ API Key Valid : <code>{2}</code>
     QOBUZ_BUTTON = "QOBUZ SETTINGS"
     DEEZER_BUTTON = "DEEZER SETTINGS"
     KKBOX_BUTTON = 'KKBOX SETTINGS'
-    SOUNDCLOUD_BUTTON = "SOUNDCLOUD SETTINGS"
+    SPOTIFY_BUTTON = "SPOTIFY SETTINGS"
     CLOSE_BUTTON = "CLOSE"
     API_BUTTON = "API"
     SPATIAL_BUTTON = "Spatial Settings"
@@ -171,18 +183,21 @@ API Key Valid : <code>{2}</code>
     HIFI_QUALITY = "HiFi"
     HIGH_QUALITY = "High"
     NORMAL_QUALITY = "Normal"
-    # QOBUZ_QUALIY
+    # QUALIY
     Q_LOSELESS = "LOSELESS"
     Q_320 = "320K"
     Q_HIRES_7 = "HiRes =< 96"
     Q_HIRES_27 = "HiRes > 96"
+    Q_160 = "160K"
     # DEEZER SPATIAL BUTTONS
     DZ_ENABLE_MHM1 = "Use MHM1 Codec"
     DZ_ENABLE_MHA1 = 'Use MHA1 Codec'
     # DUPLICATE CHECK BUTTONS
     GET_MUSIC_BUTTON = 'Get Item : {}'
     REDOWNLOAD_BUTTON = 'REDOWNLOAD SONG'
-
+    # SPOTIFY
+    B_SPOTIFY_REENCODE = 'REENCODE : {}'
+    B_SPOTIFY_FORMAT = 'FORMAT : {}'
 
 
 #----------------
@@ -205,3 +220,4 @@ API Key Valid : <code>{2}</code>
     ERR_TD_API_KEY = "Tidal API Key not valid. Please change your API Key."
     # SPOTIFY
     ERR_SPOT_NOT_AVAIL = "Sorry, Track not available"
+    ERR_SPOT_NOT_ENCODE_MP3 = "ReEncode needs to enabled for MP3. Enabling now."

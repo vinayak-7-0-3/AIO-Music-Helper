@@ -72,4 +72,14 @@ class QobuzDL:
             except Exception as e:
                 await LOGGER.error(e, user)
 
+    async def human_quality(data):
+        if data == 5:
+            return lang.Q_320
+        elif data == 6:
+            return lang.Q_LOSELESS
+        elif data == 7:
+            return lang.Q_HIRES_7
+        else:
+            return lang.Q_HIRES_27
+
 qobuz = QobuzDL()

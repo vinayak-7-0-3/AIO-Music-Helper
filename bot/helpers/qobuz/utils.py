@@ -5,7 +5,6 @@ import aigpy
 from bot.logger import LOGGER
 from bot.helpers.translations import lang
 from bot.helpers.qobuz.qopy import qobuz_api
-from bot.helpers.utils.tg_utils import send_message
 from bot.helpers.utils.common import get_file_name, handle_upload
 from bot.helpers.utils.metadata import base_metadata, set_metadata
 
@@ -277,13 +276,3 @@ def create_and_return_dir(directory):
     fix = os.path.normpath(directory)
     os.makedirs(fix, exist_ok=True)
     return 
-
-async def human_quality(data):
-    if data == 5:
-        return lang.Q_320
-    elif data == 6:
-        return lang.Q_LOSELESS
-    elif data == 7:
-        return lang.Q_HIRES_7
-    else:
-        return lang.Q_HIRES_27

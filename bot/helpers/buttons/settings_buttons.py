@@ -43,8 +43,8 @@ def main_menu_set():
         ],
         [
             InlineKeyboardButton(
-                text=lang.SOUNDCLOUD_BUTTON,
-                callback_data="scPanel"
+                text=lang.SPOTIFY_BUTTON,
+                callback_data="spotifyPanel"
             )
         ],
         [
@@ -214,6 +214,25 @@ def quality_buttons(provider, data=None):
                 )
             ]
         ]
+    elif provider == 'spotify':
+        inline_keyboard = [
+            [
+                InlineKeyboardButton(
+                    text=lang.Q_160,
+                    callback_data="SQA_spotify_160"
+                )
+            ]
+        ]
+        # If premium
+        if data:
+            inline_keyboard.append(
+                [
+                    InlineKeyboardButton(
+                        text=lang.Q_320,
+                        callback_data="SQA_spotify_320"
+                    )
+                ]
+            )
     inline_keyboard = inline_keyboard + exit_button
     return InlineKeyboardMarkup(inline_keyboard)
 
@@ -253,6 +272,30 @@ def deezer_menu_set():
             InlineKeyboardButton(
                 text=lang.SPATIAL_BUTTON,
                 callback_data="spaDZ"
+            )
+        ]
+    ]
+    inline_keyboard = inline_keyboard + exit_button
+    return InlineKeyboardMarkup(inline_keyboard)
+
+def spotify_menu_set(reencode, format):
+    inline_keyboard = [
+    [
+            InlineKeyboardButton(
+                text=lang.QUALITY_BUTTON,
+                callback_data="QA_spotify"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text=lang.B_SPOTIFY_FORMAT.format(format.upper()),
+                callback_data="encspot_format"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text=lang.B_SPOTIFY_REENCODE.format(reencode),
+                callback_data="encspot_re"
             )
         ]
     ]

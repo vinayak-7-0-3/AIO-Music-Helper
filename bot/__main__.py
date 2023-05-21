@@ -24,7 +24,7 @@ if __name__ == "__main__":
     loop = asyncio.new_event_loop()
     future = loop.run_until_complete(start())
     aio.start()
-    LOGGER.debug("❤ MUSIC HELPER BOT BETA v0.50 STARTED SUCCESSFULLY ❤")
+    LOGGER.debug("❤ MUSIC HELPER BOT BETA v0.51 STARTED SUCCESSFULLY ❤")
     idle()
     aio.stop()
     LOGGER.debug('Bot Exited Successfully ! Bye..........')

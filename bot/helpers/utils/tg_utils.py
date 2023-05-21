@@ -106,7 +106,8 @@ async def fetch_user_details(msg, reply=False, provider=None, cb=False):
 
     details['user_id'] = msg.from_user.id
     details['name'] = msg.from_user.first_name
-    details['user_name'] = msg.from_user.username
+    if msg.from_user.username: 
+        details['user_name'] = msg.from_user.username
     details['r_id'] = msg.reply_to_message.id if reply else msg.id
     details['chat_id'] = msg.chat.id
     if provider:

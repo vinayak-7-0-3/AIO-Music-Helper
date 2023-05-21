@@ -127,7 +127,7 @@ class SpotifyDL:
             metadata['album'] = data["name"]
             metadata['albumartist'] = await self.get_artists_from_meta(data)
             metadata['date'] = data['release_date']
-            metadata['upc'] = data['external_ids']['upc']
+            metadata['upc'] = data['external_ids'].get('upc')
             metadata['totaltracks'] = data['total_tracks']
             metadata['duration'] = sum(map(lambda x: x['duration_ms'], data['tracks']['items'])) / 1000
             try:
@@ -135,7 +135,7 @@ class SpotifyDL:
             except: pass
 
         metadata['title'] = data["name"]
-        metadata['quality'] = str(spotify.quality).replace('AudioQuality.', '').title().replace('_', '')
+        metadata['quality'] = str(spotify.handle_quality()) + 'k'
         metadata['provider'] = 'spotify'
         metadata['extension'] = spotify.music_format
         metadata['artist'] = await self.get_artists_from_meta(data)
@@ -185,22 +185,32 @@ class SpotifyDL:
 
         raw_audio.export(filename, format=spotify.music_format, bitrate=bitrate)
 
-    # Loads quality details from DB
+
     async def load_settings(self):
         quality, _ = set_db.get_variable("SPOTIFY_QUALITY")
         reencode, _ = set_db.get_variable("SPOTIFY_REENCODE")
         format, _ = set_db.get_variable("SPOTIFY_FORMAT")
+        
+        if spotify.session.get_user_attribute(
+            "type") == "premium" or Config.SPOTIFY_FORCE_PREMIUM == "True":
+            spotify.premiuim = True
 
-        if quality == "320":
-            spotify.quality = AudioQuality.VERY_HIGH
-        elif quality == "160":
+        if quality == 320:
+            if spotify.premiuim:
+                spotify.quality = AudioQuality.VERY_HIGH
+            else:
+                LOGGER.debug('SPOTIFY : Account not premium - Switching quality to 160K')
+                spotify.quality = AudioQuality.HIGH
+        elif quality == 160:
             spotify.quality = AudioQuality.HIGH
         else:
             # Adds default data to DB cuz nothing there
-            set_db.set_variable("SPOTIFY_QUALITY", "160", False, None)
+            set_db.set_variable("SPOTIFY_QUALITY", 160, False, None)
+            set_db.set_variable("SPOTIFY_REENCODE", False, False, None)
+            set_db.set_variable("SPOTIFY_FORMAT", "ogg", False, None)
             spotify.quality = AudioQuality.HIGH
-        #spotify.reencode = True if reencode else False
-        #spotify.music_format = 'mp3' if format == 'mp3' and reencode else 'ogg'
+        spotify.reencode = True if reencode else False
+        spotify.music_format = 'mp3' if format == 'mp3' and reencode else 'ogg'
         spotify.token = spotify.session.tokens().get("user-read-email")
 
     async def sanitize_data(self, value):

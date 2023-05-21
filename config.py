@@ -20,10 +20,11 @@ class Config(object):
 #--------------------
     try:
         TG_BOT_TOKEN = getenv("TG_BOT_TOKEN")
-        APP_ID = getenv("APP_ID")
+        APP_ID = int(getenv("APP_ID"))
         API_HASH = getenv("API_HASH")
         DATABASE_URL = getenv("DATABASE_URL")
         BOT_USERNAME = getenv("BOT_USERNAME")
+        ADMINS = set(int(x) for x in getenv("ADMINS").split())
     except:
         LOGGER.warning("Essential Configs are missing")
         exit(1)
@@ -32,11 +33,6 @@ class Config(object):
         AUTH_CHAT = set(int(x) for x in getenv("AUTH_CHAT").split())
     except:
         AUTH_CHAT = ""
-    try:
-        ADMINS = set(int(x) for x in getenv("ADMINS").split())
-    except:
-        LOGGER.warning("NO ADMIN USER IDS FOUND")
-        exit(1)
     
     IS_BOT_PUBLIC = getenv("IS_BOT_PUBLIC", True)
     LOG_CHAT = getenv("LOG_CHAT", "")
@@ -98,6 +94,7 @@ class Config(object):
 #--------------------
     SPOTIFY_EMAIL = getenv("SPOTIFY_EMAIL", "")
     SPOTIFY_PASS = getenv("SPOTIFY_PASS", "")
+    SPOTIFY_FORCE_PREMIUM = getenv("SPOTIFY_PASS", False)
 #--------------------
 
 # AUDIO SAVING OPTIONS (Dumping)

@@ -7,10 +7,11 @@ import bot.helpers.tidal_func.apikey as tidalAPI
 
 from bot.logger import LOGGER
 from bot.helpers.translations import lang
+from bot.helpers.qobuz.handler import qobuz
 from bot.helpers.qobuz.qopy import qobuz_api
 from bot.helpers.kkbox.kkapi import kkbox_api
 from bot.helpers.deezer.handler import deezerdl
-from bot.helpers.qobuz.utils import human_quality
+from bot.helpers.spotify.spotifyapi import spotify
 from bot.helpers.buttons.settings_buttons import *
 from bot.helpers.database.postgres_impl import set_db
 from bot.helpers.tidal_func.settings import TIDAL_SETTINGS
@@ -27,8 +28,13 @@ async def settings(bot, update):
         user = await fetch_user_details(update)
         await send_message(user, lang.INIT_SETTINGS_MENU, markup=main_menu_set())
 
+#
+#
+# SETTING PANELS
+#
+#
 
-# TIDAL SETTINGS PANEL
+# TIDAL
 @Client.on_callback_query(filters.regex(pattern=r"^tidalPanel"))
 async def tidal_panel_cb(bot, update):
     if await check_id(update.from_user.id, restricted=True):
@@ -39,8 +45,7 @@ async def tidal_panel_cb(bot, update):
         text = lang.TIDAL_SETTINGS_PANEL.format(quality, api_index, db_auth)
         await edit_message(user, update.message.id, text, tidal_menu_set())
 
-
-# KKBOX SETTINGS PANEL
+# KKBOX
 @Client.on_callback_query(filters.regex(pattern=r"^kkboxPanel"))
 async def kkbox_panel_cb(bot, update):
     if await check_id(update.from_user.id, restricted=True):
@@ -56,12 +61,12 @@ async def kkbox_panel_cb(bot, update):
             reply_markup=kkbox_menu_set()
         )
 
-# QOBUZ SETTINGS PANEL
+# QOBUZ
 @Client.on_callback_query(filters.regex(pattern=r"^qobuzPanel"))
 async def qobuz_panel_cb(bot, update):
     if await check_id(update.from_user.id, restricted=True):
         quality, _ = set_db.get_variable("QOBUZ_QUALITY")
-        quality = await human_quality(int(quality))
+        quality = await qobuz.human_quality(int(quality))
         auth, _ = set_db.get_variable("QOBUZ_AUTH")
         await bot.edit_message_text(
             chat_id=update.message.chat.id,
@@ -73,7 +78,7 @@ async def qobuz_panel_cb(bot, update):
             reply_markup=qobuz_menu_set()
         )
 
-# DEEZER SETTINGS PANEL
+# DEEZER
 @Client.on_callback_query(filters.regex(pattern=r"^deezerPanel"))
 async def deezer_panel_cb(bot, update):
     if await check_id(update.from_user.id, restricted=True):
@@ -93,7 +98,109 @@ async def deezer_panel_cb(bot, update):
             ),
             reply_markup=deezer_menu_set()
         )
-        
+
+# SPOTIFY
+@Client.on_callback_query(filters.regex(pattern=r"^spotifyPanel"))
+async def spotify_panel_cb(bot, update):
+    if await check_id(update.from_user.id, restricted=True):
+        quality, _ = set_db.get_variable("SPOTIFY_QUALITY")
+        reencode, _ = set_db.get_variable("SPOTIFY_REENCODE")
+        format, _ = set_db.get_variable("SPOTIFY_FORMAT")
+        auth, _ = set_db.get_variable("SPOTIFY_AUTH")
+        try:
+            await bot.edit_message_text(
+                chat_id=update.message.chat.id,
+                message_id=update.message.id,
+                text=lang.SPOTIFY_SETTINGS_PANEL.format(
+                    quality,
+                    auth,
+                    reencode,
+                    format.upper()
+                ),
+                reply_markup=spotify_menu_set(reencode, format)
+            )
+        except MessageNotModified: pass
+#
+#
+# QUALITY SETTINGS
+#
+#
+
+# INIT QUALITY PANEL FOR RESPECTIVE MODULE
+@Client.on_callback_query(filters.regex(pattern=r"^QA"))
+async def quality_cb(bot, update):
+    if await check_id(update.from_user.id, restricted=True):
+        provider = update.data.split("_")[1]
+        data = None
+        if provider == "tidal":
+            current_quality, _ = set_db.get_variable("TIDAL_QUALITY")
+            if not current_quality:
+                current_quality = "Default"
+        elif provider == 'kkbox':
+            current_quality, _ = set_db.get_variable("KKBOX_QUALITY")
+            data  = kkbox_api.available_qualities
+        elif provider == 'qobuz':
+            _quality, _ = set_db.get_variable("QOBUZ_QUALITY")
+            current_quality = await qobuz.human_quality(int(_quality))
+        elif provider == 'deezer':
+            _quality, _ = set_db.get_variable("DEEZER_QUALITY")
+            current_quality = await deezerdl.parse_quality(_quality, False, True)
+        elif provider == 'spotify':
+            _quality, _ = set_db.get_variable("SPOTIFY_QUALITY")
+            current_quality = str(_quality) + 'k'
+            data = spotify.premiuim
+        await bot.edit_message_text(
+            chat_id=update.message.chat.id,
+            message_id=update.message.id,
+            text=lang.QUALITY_SET_PANEL.format(provider.title(), current_quality),
+            reply_markup=quality_buttons(provider, data)
+        )
+
+# SET QUALITY
+@Client.on_callback_query(filters.regex(pattern=r"^SQA"))
+async def set_quality_cb(bot, update):
+    if await check_id(update.from_user.id, restricted=True):
+        provider = update.data.split("_")[1]
+        quality = update.data.split("_")[2]
+        data = None
+        if provider == "tidal":
+            set_db.set_variable("TIDAL_QUALITY", quality, False, None)
+            current_quality, _ = set_db.get_variable("TIDAL_QUALITY")
+            if not current_quality:
+                current_quality = "Default"
+        elif provider == 'kkbox':
+            set_db.set_variable("KKBOX_QUALITY", quality, False, None)
+            current_quality = quality
+            data = kkbox_api.available_qualities
+        elif provider == 'qobuz':
+            set_db.set_variable("QOBUZ_QUALITY", quality, False, None)
+            qobuz_api.quality = int(quality)
+            current_quality = await qobuz.human_quality(int(quality))
+        elif provider == 'deezer':
+            await deezerdl.set_quality(quality)
+            current_quality = quality
+        elif provider == 'spotify':
+            spotify.handle_quality(int(quality))
+            set_db.set_variable("SPOTIFY_QUALITY", quality, False, None)
+            current_quality = str(quality) + 'k'
+            data = spotify.premiuim
+        try:
+            await bot.edit_message_text(
+                chat_id=update.message.chat.id,
+                message_id=update.message.id,
+                text=lang.QUALITY_SET_PANEL.format(provider.title(), current_quality),
+                reply_markup=quality_buttons(provider, data)
+            )
+        except MessageNotModified:
+            pass
+        except Exception as e:
+            await LOGGER.error(e)
+
+#
+#
+# OTHER HANDLERS
+#
+#
 
 # API SETTINGS FOR TIDAL-DL
 @Client.on_callback_query(filters.regex(pattern=r"^apiTidal"))
@@ -156,7 +263,7 @@ async def set_dz_spatial_cb(bot, update):
         )
 
 
-# GLOBAL FUNCTION TO REMOVE AUTH
+# FUNCTION TO REMOVE AUTH FOR TIDAL
 @Client.on_callback_query(filters.regex(pattern=r"^RMA"))
 async def rmauth_cb(bot, update):
     if await check_id(update.from_user.id, restricted=True):
@@ -174,7 +281,7 @@ async def rmauth_cb(bot, update):
             await edit_message(user, update.message.id, text, tidal_menu_set())
 
 
-# GLOBAL FUNCTION TO ADD AUTH
+# FUNCTION TO ADD AUTH FOR TIDAL
 @Client.on_callback_query(filters.regex(pattern=r"^ADA"))
 async def add_auth_cb(bot, update):
     if await check_id(update.from_user.id, restricted=True):
@@ -193,68 +300,25 @@ async def add_auth_cb(bot, update):
             else:
                 pass
 
-# FOR QUALITY OPTIONS
-@Client.on_callback_query(filters.regex(pattern=r"^QA"))
-async def quality_cb(bot, update):
+# FUCTION TO SET SPOTIFY FORMAT/REENCODE OPTIONS
+@Client.on_callback_query(filters.regex(pattern=r"^encspot"))
+async def add_auth_cb(bot, update):
     if await check_id(update.from_user.id, restricted=True):
-        provider = update.data.split("_")[1]
-        data = None
-        if provider == "tidal":
-            current_quality, _ = set_db.get_variable("TIDAL_QUALITY")
-            if not current_quality:
-                current_quality = "Default"
-        elif provider == 'kkbox':
-            current_quality, _ = set_db.get_variable("KKBOX_QUALITY")
-            data  = kkbox_api.available_qualities
-        elif provider == 'qobuz':
-            _quality, _ = set_db.get_variable("QOBUZ_QUALITY")
-            current_quality = await human_quality(int(_quality))
-        elif provider == 'deezer':
-            _quality, _ = set_db.get_variable("DEEZER_QUALITY")
-            current_quality = await deezerdl.parse_quality(_quality, False, True)
-
-        await bot.edit_message_text(
-            chat_id=update.message.chat.id,
-            message_id=update.message.id,
-            text=lang.QUALITY_SET_PANEL.format(provider.title(), current_quality),
-            reply_markup=quality_buttons(provider, data)
-        )
-            
-
-# FOR SETTING QUALITY
-@Client.on_callback_query(filters.regex(pattern=r"^SQA"))
-async def set_quality_cb(bot, update):
-    if await check_id(update.from_user.id, restricted=True):
-        provider = update.data.split("_")[1]
-        quality = update.data.split("_")[2]
-        data = None
-        if provider == "tidal":
-            set_db.set_variable("TIDAL_QUALITY", quality, False, None)
-            current_quality, _ = set_db.get_variable("TIDAL_QUALITY")
-            if not current_quality:
-                current_quality = "Default"
-        elif provider == 'kkbox':
-            set_db.set_variable("KKBOX_QUALITY", quality, False, None)
-            current_quality = quality
-            data = kkbox_api.available_qualities
-        elif provider == 'qobuz':
-            set_db.set_variable("QOBUZ_QUALITY", quality, False, None)
-            qobuz_api.quality = int(quality)
-            current_quality = await human_quality(int(quality))
-        elif provider == 'deezer':
-            await deezerdl.set_quality(quality)
-            current_quality = quality
-        try:
-            await bot.edit_message_text(
-                chat_id=update.message.chat.id,
-                message_id=update.message.id,
-                text=lang.QUALITY_SET_PANEL.format(provider.title(), current_quality),
-                reply_markup=quality_buttons(provider, data)
-            )
-        except MessageNotModified:
-            pass
-        except Exception as e:
-            await LOGGER.error(e)
+        data = update.data.split("_")[1]
+        if data == 'format':
+            cur_f = spotify.music_format
+            set_f = 'mp3' if cur_f == 'ogg' else 'ogg'
+            if set_f == 'mp3' and not spotify.reencode:
+                await update.answer(lang.ERR_SPOT_NOT_ENCODE_MP3)
+                spotify.reencode = True
+                set_db.set_variable('SPOTIFY_REENCODE', True)
+            set_db.set_variable('SPOTIFY_FORMAT', set_f)
+            spotify.music_format = set_f
+        elif data == 're':
+            set_enc = False if spotify.reencode else True
+            set_db.set_variable('SPOTIFY_REENCODE', set_enc)
+            spotify.reencode = set_enc
+        await spotify_panel_cb(bot, update)
 
 
 @Client.on_callback_query(filters.regex(pattern=r"^main_menu"))
