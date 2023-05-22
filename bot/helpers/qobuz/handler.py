@@ -72,7 +72,7 @@ class QobuzDL:
             except Exception as e:
                 await LOGGER.error(e, user)
 
-    async def human_quality(data):
+    async def human_quality(self, data):
         if data == 5:
             return lang.Q_320
         elif data == 6:
