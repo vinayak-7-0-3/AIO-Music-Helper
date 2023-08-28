@@ -284,6 +284,7 @@ async def rmauth_cb(bot, update):
 # FUNCTION TO ADD AUTH FOR TIDAL
 @Client.on_callback_query(filters.regex(pattern=r"^ADA"))
 async def add_auth_cb(bot, update):
+    print('hi')
     if await check_id(update.from_user.id, restricted=True):
         user = await fetch_user_details(update.message)
         provider = update.data.split("_")[1]
@@ -302,7 +303,7 @@ async def add_auth_cb(bot, update):
 
 # FUCTION TO SET SPOTIFY FORMAT/REENCODE OPTIONS
 @Client.on_callback_query(filters.regex(pattern=r"^encspot"))
-async def add_auth_cb(bot, update):
+async def enc_set_spot_cb(bot, update):
     if await check_id(update.from_user.id, restricted=True):
         data = update.data.split("_")[1]
         if data == 'format':
