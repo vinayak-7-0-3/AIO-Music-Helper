@@ -1,13 +1,3 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-'''
-@File    :   model.py
-@Time    :   2020/08/08
-@Author  :   Yaronzz
-@Version :   3.0
-@Contact :   yaronhuang@foxmail.com
-@Desc    :   
-'''
 import aigpy
 
 class StreamUrl(aigpy.model.ModelBase):
@@ -42,6 +32,7 @@ class Album(aigpy.model.ModelBase):
     def __init__(self) -> None:
         super().__init__()
         self.id = None
+        self.upc = 0
         self.title = None
         self.duration = 0
         self.numberOfTracks = 0

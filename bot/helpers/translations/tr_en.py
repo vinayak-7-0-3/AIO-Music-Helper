@@ -9,7 +9,16 @@ class EN(object):
     WELCOME_MSG = "Hello {} Sir"
     START_DOWNLOAD = "Starting to download..........."
     ANTI_SPAM_WAIT = "Wait for the current task to complete!"
-    TASK_COMPLETED = "Download Finished"    
+    TASK_COMPLETED = "Download Finished"   
+    SONG_COPY_EXIST = 'Song already downloaded exist'
+    SONG_COPY_EXIST_INFO = """
+<b>ITEM NO - {}</b>
+Title : {}
+Artist : {}
+Source : {}
+Quality : {}
+{} : {}
+""" 
 
 
 
@@ -43,56 +52,20 @@ class EN(object):
 # MUSIC DETAILS - TELEGRAM
 #
 #----------------
-    USER_MENTION_ALBUM = "❤️ <b>Requested by :</b> {}"
-    USER_MENTION_TRACK = "Requested by {}"
-
-    # TIDAL
-    TIDAL_ALBUM_DETAILS = """
-💽 <b>Title :</b> {0}
-👤 <b>Artist :</b> {1}
-📅 <b>Release Date :</b> {2}
-📀 <b>Number of Tracks :</b> {3}
-🕒 <b>Duration :</b> {4}
-🔢 <b>Number of Volumes :</b> {5}
-"""
-    # KKBOX
-    KKBOX_ALBUM_DETAILS = """
-🎶 <b>Title :</b> {0}
-👤 <b>Artist :</b> {1}
-📅 <b>Release Date :</b> {2}
-📀 <b>Number of Tracks :</b> {3}
+    ALBUM_TEMPLATE = """
+🎶 <b>Title :</b> {title}
+👤 <b>Artist :</b> {artist}
+📅 <b>Release Date :</b> {date}
+🔢 <b>Total Tracks :</b> {totaltracks}
+📀 <b>Total Volumes :</b> {totalvolume}
+💫 <b>Quality :</b> {quality}
+📡 <b>Provider :</b> {provider}
+🔞 <b>Explicit :</b> {explicit}
 """
 
-    # QOBUZ
-    QOBUZ_ALBUM_DETAILS = """
-🎶 <b>Title :</b> {0}
-👤 <b>Artist :</b> {1}
-📅 <b>Release Date :</b> {2}
-📀 <b>Number of Tracks :</b> {3}
-"""
-
-    
-    # DEEZER
-    DEEZER_ALBUM_DETAILS = """
-🎶 <b>Title :</b> {0}
-👤 <b>Artist :</b> {1}
-📅 <b>Release Date :</b> {2}
-🔢 <b>Total Tracks :</b> {3}
-"""
-
-
-    # SPOTIFY
-    SPOTIFY_ALBUM_DETAILS = """
-🎶 <b>Title :</b> {0}
-👤 <b>Artist :</b> {1}
-📅 <b>Release Date :</b> {2}
-🔢 <b>Total Tracks :</b> {3}
-"""
-
-
-    QUALITY_ADDON = "💫 <b>Quality :</b> {} \n"
-
-    
+    # The caption on the uploaded audio file in Telegram
+    # Keep it blank for no captions
+    TRACK_TEMPLATE = ""
 
     
 
@@ -163,7 +136,19 @@ API Key Valid : <code>{2}</code>
 <b>Auth Method : </b><code>{2}</code>
 <b>Get Spatial : </b><code>{3}</code>
     """
+    #
+    # DEEZER PANEL
+    #
+    SPOTIFY_SETTINGS_PANEL = """
+<b>Configure Spotify Settings Here</b>
 
+<b><u>CURRENT SETTINGS</u></b>
+
+<b>Quality : </b><code>{0}</code>
+<b>Auth Status : </b><code>{1}</code>
+<b>ReEncode Files : </b><code>{2}</code>
+<b>File Format : </b><code>{3}</code>
+"""
     
 
 
@@ -180,7 +165,7 @@ API Key Valid : <code>{2}</code>
     QOBUZ_BUTTON = "QOBUZ SETTINGS"
     DEEZER_BUTTON = "DEEZER SETTINGS"
     KKBOX_BUTTON = 'KKBOX SETTINGS'
-    SOUNDCLOUD_BUTTON = "SOUNDCLOUD SETTINGS"
+    SPOTIFY_BUTTON = "SPOTIFY SETTINGS"
     CLOSE_BUTTON = "CLOSE"
     API_BUTTON = "API"
     SPATIAL_BUTTON = "Spatial Settings"
@@ -198,16 +183,21 @@ API Key Valid : <code>{2}</code>
     HIFI_QUALITY = "HiFi"
     HIGH_QUALITY = "High"
     NORMAL_QUALITY = "Normal"
-    # QOBUZ_QUALIY
+    # QUALIY
     Q_LOSELESS = "LOSELESS"
     Q_320 = "320K"
     Q_HIRES_7 = "HiRes =< 96"
     Q_HIRES_27 = "HiRes > 96"
+    Q_160 = "160K"
     # DEEZER SPATIAL BUTTONS
     DZ_ENABLE_MHM1 = "Use MHM1 Codec"
     DZ_ENABLE_MHA1 = 'Use MHA1 Codec'
-
-
+    # DUPLICATE CHECK BUTTONS
+    GET_MUSIC_BUTTON = 'Get Item : {}'
+    REDOWNLOAD_BUTTON = 'REDOWNLOAD SONG'
+    # SPOTIFY
+    B_SPOTIFY_REENCODE = 'REENCODE : {}'
+    B_SPOTIFY_FORMAT = 'FORMAT : {}'
 
 
 #----------------
@@ -217,7 +207,9 @@ API Key Valid : <code>{2}</code>
 #----------------
     ERR_LINK_RECOGNITION = "Sorry, couldn't recognise the given link."
     # QOBUZ
-    ERR_QOBUZ_NOT_STREAMABLE = "This album is not available to download."
+    ERR_QOBUZ_NOT_STREAMABLE = "QOBUZ : This track/album is not available to download."
+    ERR_QOBUZ_RESTRICTION = "QOBUZ : Track Restricted By Purchase Credentials"
+    ERR_QOBUZ_NOT_AVAILABLE = 'QOBUZ : Track not available for download'
     ERR_NO_LINK = "No link provided to download from"
     # DEEZER
     ERR_DZ_QUALITY_NOT_AVAIL = "Selected quality not available in your account."
@@ -228,3 +220,4 @@ API Key Valid : <code>{2}</code>
     ERR_TD_API_KEY = "Tidal API Key not valid. Please change your API Key."
     # SPOTIFY
     ERR_SPOT_NOT_AVAIL = "Sorry, Track not available"
+    ERR_SPOT_NOT_ENCODE_MP3 = "ReEncode needs to enabled for MP3. Enabling now."

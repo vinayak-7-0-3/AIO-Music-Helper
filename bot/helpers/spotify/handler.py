@@ -1,18 +1,18 @@
 import re
-import os
-import aigpy
 import asyncio
 
-from bot import LOGGER
 from config import Config
 from pydub import AudioSegment
 from librespot.metadata import TrackId, EpisodeId
 from librespot.audio.decoders import AudioQuality, VorbisOnlyAudioQuality
 
-from bot.helpers.translations import lang
+from bot.logger import LOGGER
 from bot.helpers.spotify.spotifyapi import spotify
 from bot.helpers.database.postgres_impl import set_db
 from bot.helpers.utils.metadata import base_metadata, set_metadata
+from bot.helpers.utils.common import post_cover, get_file_name, \
+        check_music_exist, handle_upload
+
 
 CHUNK_SIZE = 50000
 REINTENT_DOWNLOAD = 30
@@ -25,59 +25,66 @@ class SpotifyDL:
     async def login(self):
         await spotify.login(Config.SPOTIFY_EMAIL, Config.SPOTIFY_PASS)
         await self.load_settings()
-        LOGGER.info("Loaded Spotify Succesfully")
+        LOGGER.debug("Loaded Spotify Succesfully")
         
 
 #=================================
 # DOWNLOAD
 #=================================
-    async def start(self, link, bot, update, r_id, u_name):
+    async def start(self, link, user):
         type_id, link_type = await self.parse_url(link)
         if link_type == 'track':
-            await self.getTrack(bot, update, r_id, u_name, type_id)
+            await self.getTrack(type_id, user)
         elif link_type == 'album':
-            await self.getAlbum(type_id, bot, update, r_id, u_name)
+            await self.getAlbum(type_id, user)
 
-    async def getTrack(self, bot, update, r_id, u_name, track_id=None):
+
+    async def getTrack(self, track_id, user, type='track'):
         err = None
         quality = spotify.quality
         data, err = await spotify.get_song_info(track_id)
         if err: return
         metadata, scraped_song_id = await self.get_metadata(data)
+
+        dupe = await check_music_exist(metadata, user, t_source=type)
+
         if scraped_song_id != track_id:
             track_id = scraped_song_id
-        await self.downloadTrack(track_id, metadata, quality, bot, update, r_id, u_name)
+        await self.downloadTrack(track_id, metadata, quality, user, type)
 
 
-    async def getAlbum(self, album_id, bot, update, r_id, u_name):
+    async def getAlbum(self, album_id, user):
         album_data = await spotify.get_album_name(album_id)
         metadata, _ = await self.get_metadata(album_data, 'album')
-        await self.post_cover(metadata, bot, update, r_id, u_name)
-        for track in album_data['tracks']['items']:
-            await self.getTrack(bot, update, r_id, u_name, track['id'])
-            await asyncio.sleep(5)
         
+        dupe = await check_music_exist(metadata, user, 'album')
+        if dupe: return
+        
+        await post_cover(metadata, user)
+        for track in album_data['tracks']['items']:
+            try:
+                await self.getTrack(track['id'], user, 'album')
+                await asyncio.sleep(5)
+            except Exception as e:
+                await LOGGER.error(e, user)
 
-    async def downloadTrack(self, track_id, metadata, quality, bot, update, r_id, u_name):
+
+    async def downloadTrack(self, track_id, metadata, quality, user, type):
         track_id = TrackId.from_base62(track_id)
-        file_path = f"{Config.DOWNLOAD_BASE_DIR}/spotify/{r_id}/"
-        file_name = file_path + await self.sanitize_data(f"{metadata['artist']} - {metadata['title']}.{metadata['extension']}")
-        thumb_path = file_path + f'_thumbnail.jpg'
 
-        aigpy.net.downloadFile(metadata['thumbnail'], thumb_path)
+        filepath, _, _ = await get_file_name(user, metadata, type)
 
         stream = spotify.session.content_feeder().load(
             track_id, VorbisOnlyAudioQuality(quality), False, None
         )
         
-        os.makedirs(file_path, exist_ok=True)
         
         # MAIN DOWNLOADING PART
         total_size = stream.input_stream.size
         downloaded = 0
         fail = 0
         _CHUNK_SIZE = CHUNK_SIZE
-        with open(file_name, "wb") as file:
+        with open(filepath, "wb") as file:
             while downloaded <= total_size:
                 data = stream.input_stream.stream().read(_CHUNK_SIZE)
                 downloaded += len(data)
@@ -90,20 +97,12 @@ class SpotifyDL:
                     break
 
         if spotify.reencode:
-            await self.convert_audio_format(file_name, quality)
+            await self.convert_audio_format(filepath, quality)
 
-        await set_metadata(file_name, metadata)
+        await set_metadata(filepath, metadata)
 
-        await bot.send_audio(
-            chat_id=update.chat.id,
-            audio=file_name,
-            duration=int(metadata['duration']),
-            performer=metadata['artist'],
-            title=metadata['title'],
-            thumb=thumb_path,
-            reply_to_message_id=r_id
-        )
-
+        #await send_message(user, filepath, 'audio', metadata)
+        await handle_upload(user, filepath, metadata)
         
 #=================================
 # HELPERS
@@ -120,42 +119,29 @@ class SpotifyDL:
             metadata['isrc'] = data["external_ids"]["isrc"]
             metadata['totaltracks'] = data["album"]["total_tracks"]
             metadata['volume'] = data["disc_number"]
+            metadata['explicit'] = str(data['explicit']).title()
             metadata['thumbnail'] = await self.get_albumart(data, 'min')
             metadata['duration'] = int(data["duration_ms"]) / 1000
             scraped_song_id = data["id"]
         elif type == 'album':
+            metadata['album'] = data["name"]
+            metadata['albumartist'] = await self.get_artists_from_meta(data)
             metadata['date'] = data['release_date']
-            metadata['upc'] = data['external_ids']['upc']
+            metadata['upc'] = data['external_ids'].get('upc')
             metadata['totaltracks'] = data['total_tracks']
+            metadata['duration'] = sum(map(lambda x: x['duration_ms'], data['tracks']['items'])) / 1000
+            try:
+                metadata['copyright'] = data['copyrights'][0]['text']
+            except: pass
 
         metadata['title'] = data["name"]
-        metadata['quality'] = '160'
+        metadata['quality'] = str(spotify.handle_quality()) + 'k'
         metadata['provider'] = 'spotify'
         metadata['extension'] = spotify.music_format
         metadata['artist'] = await self.get_artists_from_meta(data)
         metadata['albumart'] = await self.get_albumart(data, 'max', type)
-            
         return metadata, scraped_song_id
     
-    async def post_cover(self, metadata, bot, update, r_id, u_name):
-        post_details = lang.select.DEEZER_ALBUM_DETAILS.format(
-            metadata['title'],
-            metadata['artist'],
-            metadata['date'],
-            metadata['totaltracks']
-        )
-        quality = metadata['quality']
-        if quality != '':
-            post_details = post_details + lang.select.QUALITY_ADDON.format(quality)
-        if Config.MENTION_USERS == "True":
-            post_details = post_details + lang.select.USER_MENTION_ALBUM.format(u_name)
-        
-        await bot.send_photo(
-            chat_id=update.chat.id,
-            photo=metadata['albumart'],
-            caption=post_details,
-            reply_to_message_id=r_id
-        )
 
     async def get_artists_from_meta(self, data):
         artists = []
@@ -199,23 +185,32 @@ class SpotifyDL:
 
         raw_audio.export(filename, format=spotify.music_format, bitrate=bitrate)
 
-    # Loads quality details from DB
+
     async def load_settings(self):
         quality, _ = set_db.get_variable("SPOTIFY_QUALITY")
         reencode, _ = set_db.get_variable("SPOTIFY_REENCODE")
         format, _ = set_db.get_variable("SPOTIFY_FORMAT")
+        
+        if spotify.session.get_user_attribute(
+            "type") == "premium" or Config.SPOTIFY_FORCE_PREMIUM == "True":
+            spotify.premiuim = True
 
-        if quality == "320":
-            spotify.quality = AudioQuality.VERY_HIGH
-        elif quality == "160":
+        if quality == 320:
+            if spotify.premiuim:
+                spotify.quality = AudioQuality.VERY_HIGH
+            else:
+                LOGGER.debug('SPOTIFY : Account not premium - Switching quality to 160K')
+                spotify.quality = AudioQuality.HIGH
+        elif quality == 160:
             spotify.quality = AudioQuality.HIGH
         else:
             # Adds default data to DB cuz nothing there
-            set_db.set_variable("SPOTIFY_QUALITY", "160", False, None)
+            set_db.set_variable("SPOTIFY_QUALITY", 160, False, None)
+            set_db.set_variable("SPOTIFY_REENCODE", False, False, None)
+            set_db.set_variable("SPOTIFY_FORMAT", "ogg", False, None)
             spotify.quality = AudioQuality.HIGH
-
-        #spotify.reencode = True if reencode else False
-        #spotify.music_format = 'mp3' if format == 'mp3' and reencode else 'ogg'
+        spotify.reencode = True if reencode else False
+        spotify.music_format = 'mp3' if format == 'mp3' and reencode else 'ogg'
         spotify.token = spotify.session.tokens().get("user-read-email")
 
     async def sanitize_data(self, value):

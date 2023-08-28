@@ -2,7 +2,8 @@ import os
 import aigpy
 import music_tag
 
-from bot import LOGGER
+from bot.logger import LOGGER
+
 from mutagen import File
 from config import Config
 from mutagen.mp4 import MP4
@@ -14,6 +15,7 @@ from mutagen.id3 import TALB, TCOP, TDRC, TIT2, TPE1, TRCK, APIC, \
 
 
 base_metadata = {
+    'item_id': '',
     'title': '',
     'album': '',
     'artist': '',
@@ -24,15 +26,17 @@ base_metadata = {
     'upc': '',
     'isrc': '',
     'totaltracks': '',
-    'volume' : '',
-    'albumart' : '',
-    'thumbnail' : '',
+    'volume': '',
+    'totalvolume': '',
+    'albumart': '',
+    'thumbnail': '',
     'extension': '',
-    'duration': '',
+    'duration': '',  # in seconds
     'copyright': '',
     'genre': '',
     'provider': '',
-    'quality': ''
+    'quality': '',
+    'explicit': ''
 }
 
 async def set_metadata(audio_path, data):
@@ -143,7 +147,7 @@ async def savePic(handle, metadata):
         with open(album_art, "rb") as f:
             data = f.read()
     except Exception as e:
-        LOGGER.warning(e)
+        await LOGGER.error(e)
         return
 
     if ext == 'flac':
@@ -174,5 +178,26 @@ async def get_duration(path, data, ext):
         audio = FLAC(path)
     data['duration'] = audio.info.length
     
-
-
+async def format_string(text, data, user=None):
+    text = text.replace(R'{title}', data['title'])
+    text = text.replace(R'{album}', data['album'])
+    text = text.replace(R'{artist}', data['artist'])
+    text = text.replace(R'{albumartist}', data['albumartist'])
+    text = text.replace(R'{tracknumber}', str(data['tracknumber']))
+    text = text.replace(R'{date}', str(data['date']))
+    text = text.replace(R'{upc}', str(data['upc']))
+    text = text.replace(R'{isrc}', str(data['isrc']))
+    text = text.replace(R'{totaltracks}', str(data['totaltracks']))
+    text = text.replace(R'{volume}', str(data['volume']))
+    text = text.replace(R'{totalvolume}', str(data['totalvolume']))
+    text = text.replace(R'{extension}', data['extension'])
+    text = text.replace(R'{duration}', str(data['duration']))
+    text = text.replace(R'{copyright}', data['copyright'])
+    text = text.replace(R'{genre}', data['genre'])
+    text = text.replace(R'{provider}', data['provider'].title())
+    text = text.replace(R'{quality}', data['quality'])
+    text = text.replace(R'{explicit}', str(data['explicit']))
+    if user:
+        text = text.replace(R'{user}', user['name'])
+        text = text.replace(R'{username}', user['user_name'])
+    return text

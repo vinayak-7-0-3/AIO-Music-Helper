@@ -1,13 +1,3 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-"""
-@File    :  paths.py
-@Date    :  2022/06/10
-@Author  :  Yaronzz
-@Version :  1.0
-@Contact :  yaronhuang@foxmail.com
-@Desc    :  
-"""
 import aigpy
 import datetime
 
@@ -32,14 +22,14 @@ def __getDurationStr__(seconds):
     return time_string
 
 
-def __getExtension__(stream: StreamUrl):
-    if '.flac' in stream.url:
-        return '.flac'
-    if '.mp4' in stream.url:
+def getExtension(stream: StreamUrl):
+    if 'flac' in stream.url:
+        return 'flac'
+    if 'mp4' in stream.url:
         if 'ac4' in stream.codec or 'mha1' in stream.codec:
-            return '.mp4'
-        return '.m4a'
-    return '.m4a'
+            return 'mp4'
+        return 'm4a'
+    return 'm4a'
 
 
 def getAlbumPath(album, r_id):
@@ -86,7 +76,7 @@ def getPlaylistPath(playlist, r_id):
     return f"{TIDAL_SETTINGS.downloadPath}/{r_id}/Playlist/{name}"
 
 
-def getTrackPath(track, stream, r_id, album=None, playlist=None,):
+"""def getTrackPath(track, stream, r_id, album=None, playlist=None,):
     base = './'
     number = str(track.trackNumber).rjust(2, '0')
     if album is not None:
@@ -115,7 +105,7 @@ def getTrackPath(track, stream, r_id, album=None, playlist=None,):
     year = __getYear__(album.releaseDate)
 
     # extension
-    extension = __getExtension__(stream)
+    extension = getExtension(stream)
 
     retpath = TIDAL_SETTINGS.trackFileFormat
     if retpath is None or len(retpath) <= 0:
@@ -132,43 +122,7 @@ def getTrackPath(track, stream, r_id, album=None, playlist=None,):
     retpath = retpath.replace(R"{Duration}", __getDurationStr__(track.duration))
     retpath = retpath.replace(R"{TrackID}", str(track.id))
     retpath = retpath.strip()
-    return f"{base}/{retpath}{extension}"
-
-
-def getVideoPath(video, album=None, playlist=None):
-    base = TIDAL_SETTINGS.downloadPath + '/Video/'
-    if album is not None and album.title is not None:
-        base = getAlbumPath(album)
-    elif playlist is not None:
-        base = getPlaylistPath(playlist)
-
-    # get number
-    number = str(video.trackNumber).rjust(2, '0')
-
-    # get artist
-    artists = __fixPath__(TIDAL_API.getArtistsName(video.artists))
-    artist = __fixPath__(video.artist.name) if video.artist is not None else ""
-
-    # explicit
-    explicit = "(Explicit)" if video.explicit else ''
-
-    # title and year and extension
-    title = __fixPath__(video.title)
-    year = __getYear__(video.releaseDate)
-    extension = ".mp4"
-
-    retpath = TIDAL_SETTINGS.videoFileFormat
-    if retpath is None or len(retpath) <= 0:
-        retpath = TIDAL_SETTINGS.getDefaultVideoFileFormat()
-    retpath = retpath.replace(R"{VideoNumber}", number)
-    retpath = retpath.replace(R"{ArtistName}", artist)
-    retpath = retpath.replace(R"{ArtistsName}", artists)
-    retpath = retpath.replace(R"{VideoTitle}", title)
-    retpath = retpath.replace(R"{ExplicitFlag}", explicit)
-    retpath = retpath.replace(R"{VideoYear}", year)
-    retpath = retpath.replace(R"{VideoID}", str(video.id))
-    retpath = retpath.strip()
-    return f"{base}/{retpath}{extension}"
+    return f"{base}/{retpath}{extension}"""
 
 def getLogPath():
     return './.tidal-dl.log'

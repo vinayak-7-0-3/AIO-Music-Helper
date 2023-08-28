@@ -14,6 +14,7 @@ class SpotifyAPI:
         # If using mp3 - Set re-encode to True
         self.music_format = "ogg"
         self.reencode = False
+        self.premiuim = False
 
     async def login(self, user_name, password):
         """if os.path.isfile("credentials.json"):
@@ -33,7 +34,7 @@ class SpotifyAPI:
             )
             is_playable = info["tracks"][0]["is_playable"]
             if not is_playable:
-                return None, lang.select.ERR_SPOT_NOT_AVAIL
+                return None, lang.ERR_SPOT_NOT_AVAIL
             return info['tracks'][0], None
         except:
             pass
@@ -45,6 +46,13 @@ class SpotifyAPI:
         ).json()
         return resp
     
-
+    def handle_quality(self, data=None):
+        'Sets quality if input given else returns cuurent quality'
+        if data == 160: self.quality = AudioQuality.HIGH
+        elif data == 320: self.quality = AudioQuality.VERY_HIGH
+        else:
+            if spotify.quality == AudioQuality.HIGH:
+                return 160
+            else: return 320
 
 spotify = SpotifyAPI() 

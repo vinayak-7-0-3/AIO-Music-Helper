@@ -1,13 +1,3 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-"""
-@File    :  apiKey.py
-@Date    :  2021/11/30
-@Author  :  Yaronzz
-@Version :  3.0
-@Contact :  yaronhuang@foxmail.com
-@Desc    :
-"""
 import json
 import requests
 

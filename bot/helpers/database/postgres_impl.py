@@ -9,7 +9,7 @@ from bot import Config
 #special_characters = ['!','#','$','%', '&','@','[',']',' ',']','_', ',', '.', ':', ';', '<', '>', '?', '\\', '^', '`', '{', '|', '}', '~']
 
 """
-SETTINGS VARS
+BOT SETTINGS VARS
 
 TIDAL_AUTH_TOKEN - Tidal main auth token (BLOB)
 TIDAL_AUTH_DONE - Status of Tidal Session (True/False)
@@ -316,10 +316,58 @@ class UserSettings(DataBaseHandle):
             else:
                 return None
 
-            self.ccur(cur)
+class MusicDB(DataBaseHandle):
+    def __init__(self, dburl=None):
+        if dburl is None:
+            dburl = Config.DATABASE_URL
+        super().__init__(dburl)
+
+        music_schema = """CREATE TABLE IF NOT EXISTS music_table (
+            msg_id BIGINT UNIQUE,
+            metadata VARCHAR(3000) DEFAULT NULL,
+            track_id VARCHAR(50) DEFAULT NULL,
+            type VARCHAR(30) DEFAULT NULL
+        )"""
+
+        cur = self.scur()
+        try:
+            cur.execute(music_schema)
+        except psycopg2.errors.UniqueViolation:
+            pass
+
+        self._conn.commit()
+        self.ccur(cur)
+
+
+    # Type - "track", "album" etc
+    # track_id - ISRC or UPC
+    def set_music(self, msg_id, meta, track_id, type):
+        #title = ''.join(filter(lambda i:i not in special_characters, title))
+        sql = "SELECT * FROM music_table"
+        cur = self.scur()
+
+        sql = "INSERT INTO music_table(msg_id,metadata,track_id,type) VALUES(%s,%s,%s,%s)"
+        try:
+            cur.execute(sql, (msg_id, str(meta), track_id, type))
+        except psycopg2.errors.UniqueViolation:
+            cur.execute("rollback")
+
+        self.ccur(cur)
+
+    def get_music_id(self, track_id):
+        sql = "SELECT * FROM music_table WHERE track_id=%s"
+
+        cur = self.scur()
+        cur.execute(sql, (track_id,))
+        if cur.rowcount > 0:
+            row = cur.fetchall()
+            return row
+        return None
+
 
 set_db = BotSettings()
 users_db = AuthedUsers()
 admins_db = AuthedAdmins()
 chats_db = AuthedChats()
 user_settings = UserSettings()
+music_db = MusicDB()

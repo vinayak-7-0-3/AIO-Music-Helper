@@ -20,23 +20,23 @@ class Config(object):
 #--------------------
     try:
         TG_BOT_TOKEN = getenv("TG_BOT_TOKEN")
-        APP_ID = int(getenv("APP_ID", 123))
+        APP_ID = int(getenv("APP_ID"))
         API_HASH = getenv("API_HASH")
+        DATABASE_URL = getenv("DATABASE_URL")
+        BOT_USERNAME = getenv("BOT_USERNAME")
+        ADMINS = set(int(x) for x in getenv("ADMINS").split())
     except:
-        LOGGER.warning("Essential TG Configs are missing")
+        LOGGER.warning("Essential Configs are missing")
         exit(1)
 
     try:
         AUTH_CHAT = set(int(x) for x in getenv("AUTH_CHAT").split())
     except:
         AUTH_CHAT = ""
-    try:
-        ADMINS = set(int(x) for x in getenv("ADMINS").split())
-    except:
-        LOGGER.warning("NO ADMIN USER IDS FOUND")
-        exit(1)
     
     IS_BOT_PUBLIC = getenv("IS_BOT_PUBLIC", True)
+    LOG_CHAT = getenv("LOG_CHAT", "")
+    LOG_ALL_INFO = getenv("LOG_ALL_INFO", "")
 
     try:
         AUTH_USERS = set(int(x) for x in getenv("AUTH_USERS").split())
@@ -48,26 +48,18 @@ class Config(object):
     # Just name of the Downloads Folder
     DOWNLOADS_FOLDER = getenv("DOWNLOADS_FOLDER", "DOWNLOADS")
     DOWNLOAD_BASE_DIR = WORK_DIR + DOWNLOADS_FOLDER
-    
-    BOT_USERNAME = getenv("BOT_USERNAME", "")
-    if not BOT_USERNAME:
-        LOGGER.warning("NO BOT USERNAME FOUND")
-        exit(1)
-    
-    DATABASE_URL = getenv("DATABASE_URL")
-    if not DATABASE_URL:
-        LOGGER.warning("NO DATABASE URL FOUND")
-        exit(1)
 
     BOT_LANGUAGE = getenv("BOT_LANGUAGE", "en")
-    MENTION_USERS = getenv("MENTION_USERS", False)
     ANIT_SPAM_MODE = getenv("ANIT_SPAM_MODE", False)
+    
 #--------------------
 
-# TIDAL VARIABLES
+# FILE/FOLDER NAMING
 
 #--------------------
-    TIDAL_TRACK_FORMAT = getenv("TIDAL_TRACK_FORMAT", "{TrackTitle} - {ArtistName}")
+    PLAYLIST_NAME_FORMAT = getenv("PLAYLIST_NAME_FORMAT", "{title} - Playlist")
+    ALBUM_NAME_FORMAT = getenv("ALBUM_PATH_FORMAT", "{album} - {albumartist}")
+    TRACK_NAME_FORMAT = getenv("TRACK_NAME_FORMAT", "{title} - {artist}")
 #--------------------
 
 # KKBOX VARIABLES
@@ -83,7 +75,8 @@ class Config(object):
 #--------------------
     QOBUZ_EMAIL = getenv("QOBUZ_EMAIL", "")
     QOBUZ_PASSWORD = getenv("QOBUZ_PASSWORD", "")
-    QOBUZ_TRACK_FORMAT = getenv("QOBUZ_TRACK_FORMAT", "{tracknumber}. {tracktitle}")
+    QOBUZ_USER = getenv("QOBUZ_USER", "")
+    QOBUZ_TOKEN = getenv("QOBUZ_TOKEN", "")
 #--------------------
 
 # DEEZER VARIABLES
@@ -101,6 +94,20 @@ class Config(object):
 #--------------------
     SPOTIFY_EMAIL = getenv("SPOTIFY_EMAIL", "")
     SPOTIFY_PASS = getenv("SPOTIFY_PASS", "")
+    SPOTIFY_FORCE_PREMIUM = getenv("SPOTIFY_PASS", False)
+#--------------------
+
+# AUDIO SAVING OPTIONS (Dumping)
+
+#--------------------
+    COPY_AUDIO_FILES = getenv('COPY_AUDIO_FILES', False)
+    DUPLICATE_CHECK = getenv('DUPLICATE_CHECK', False)
+    SPOTIFY_CHAT = getenv('SPOTIFY_CHAT', None)
+    QOBUZ_CHAT = getenv('QOBUZ_CHAT', None)
+    TIDAL_CHAT = getenv('TIDAL_CHAT', None)
+    DEEZER_CHAT = getenv('DEEZER_CHAT', None)
+    KKBOX_CHAT = getenv('KKBOX_CHAT', None)
+
 
     if BOT_USERNAME.startswith("@"):
         BOT_USERNAME = BOT_USERNAME[1:]

@@ -2,11 +2,10 @@ import os
 import re
 import aigpy
 
-from config import Config
-
-from bot import LOGGER
-from bot.helpers.qobuz.qopy import qobuz_api
+from bot.logger import LOGGER
 from bot.helpers.translations import lang
+from bot.helpers.qobuz.qopy import qobuz_api
+from bot.helpers.utils.common import get_file_name, handle_upload
 from bot.helpers.utils.metadata import base_metadata, set_metadata
 
 QL_DOWNGRADE = "FormatRestrictedByFormatAvailability"
@@ -59,7 +58,7 @@ async def check_type(url):
     if type_dict["func"]:
         content = [item for item in type_dict["func"](item_id)]
         content_name = content[0]["name"]
-        LOGGER.info(
+        await LOGGER.info(
             f"Downloading all the music from {content_name} "
             f"({url_type})!"
         )
@@ -82,53 +81,38 @@ async def check_type(url):
         return None, item_id, type_dict, content
 
 
-async def download_track(bot, update, id, r_id, u_name, track_meta, path, album_meta=None, 
-    f_album=False, type='track'):
+async def download_track(id, user, track_meta, type='track'):
     raw_data = qobuz_api.get_track_url(id)
     try:
         url = raw_data['url']
     except KeyError:
-        LOGGER.warning('Track not available for download')
+        await LOGGER.error(lang.ERR_QOBUZ_NOT_AVAILABLE, user)
         return
 
+    path, _, _ = await get_file_name(user, track_meta, type)
     aigpy.net.downloadFile(url, path)
     await set_metadata(path, track_meta)
 
-    if type == 'track' and Config.MENTION_USERS == "True":
-        text = lang.select.USER_MENTION_TRACK.format(u_name)
-    else:
-        text = None
-
-    thumb_path = path + f'_thumbnail.jpg'
-    aigpy.net.downloadFile(track_meta['thumbnail'], thumb_path)
-
-    await bot.send_audio(
-        chat_id=update.chat.id,
-        audio=path,
-        caption=text,
-        duration=int(track_meta['duration']),
-        performer=track_meta['artist'],
-        title=track_meta['title'],
-        thumb=thumb_path,
-        reply_to_message_id=r_id
-    )
-
+    #await send_message(user, path, 'audio', track_meta)
+    await handle_upload(user, path, track_meta)
     os.remove(path)
-    os.remove(thumb_path)
 
+# Set 'type' to 'album' for album post details
 async def get_metadata(id, type='track'):
     # Null metadata dict
     metadata = base_metadata.copy()
     if type == 'track':
         raw_meta = qobuz_api.get_track_url(id)
-        if "sample" not in raw_meta and raw_meta["sampling_rate"]:
+        if "sample" not in raw_meta and raw_meta.get('sampling_rate'):
             q_meta = qobuz_api.get_track_meta(id)
+            if not q_meta.get('streamable'):
+                return None, None, lang.ERR_QOBUZ_NOT_STREAMABLE
         else:
-            return None, None, lang.select.ERR_QOBUZ_NOT_STREAMABLE
+            return None, None, lang.ERR_QOBUZ_NOT_STREAMABLE
     elif type == 'album':
         q_meta = qobuz_api.get_album_meta(id)
-        if not q_meta["streamable"]:
-            return None, None, lang.select.ERR_QOBUZ_NOT_STREAMABLE
+        if not q_meta.get('streamable'):
+            return None, None, lang.ERR_QOBUZ_NOT_STREAMABLE
 
     metadata['title'] = q_meta['title']
     metadata['artist'] = await get_artist(q_meta, type)
@@ -148,32 +132,20 @@ async def get_metadata(id, type='track'):
         metadata['isrc'] = q_meta['isrc']
         metadata['tracknumber'] = q_meta['track_number']
         metadata['album'] = q_meta['album']['title']
-        metadata['albumartist'] = await get_artist(q_meta, 'tAlbum')
-        metadata['copyright'] = q_meta['copyright']
+        metadata['albumartist'] = await get_artist(q_meta, 'album')
         metadata['genre'] = q_meta['album']['genre']['name']
-        metadata['provider'] = 'qobuz'
-    else:
+    elif type=='album':
+        metadata['album'] = q_meta['title']
+        metadata['albumartist'] = await get_artist(q_meta, type)
+        metadata['genre'] = q_meta['genre']['name']
+        metadata['upc'] = q_meta['upc']
         raw_meta = q_meta
+
+    metadata['explicit'] = str(q_meta['parental_warning'])
+    metadata['duration'] = q_meta['duration']
+    metadata['copyright'] = q_meta['copyright']
+    metadata['provider'] = 'qobuz'
     return metadata, raw_meta, None
-
-async def post_cover(meta, bot, update, r_id, u_name, quality=None):
-    post_details = lang.select.QOBUZ_ALBUM_DETAILS.format(
-        meta['title'],
-        meta['artist'],
-        meta['date'],
-        meta['totaltracks']
-    )
-
-    if quality:
-        post_details = post_details + lang.select.QUALITY_ADDON.format(quality)
-    if Config.MENTION_USERS == "True":
-            post_details = post_details + lang.select.USER_MENTION_ALBUM.format(u_name)
-    await bot.send_photo(
-        chat_id=update.chat.id,
-        photo=meta['albumart'],
-        caption=post_details,
-        reply_to_message_id=r_id
-    )
 
 async def check_quality(raw_meta, type='track'):
     if int(qobuz_api.quality) == 5:
@@ -183,7 +155,6 @@ async def check_quality(raw_meta, type='track'):
         new_track_dict = qobuz_api.get_track_url(raw_meta["id"])
     else:
         new_track_dict = raw_meta
-
     restrictions = new_track_dict.get("restrictions")
     if isinstance(restrictions, list):
         if any(
@@ -192,15 +163,14 @@ async def check_quality(raw_meta, type='track'):
         ):
             quality_met = False
     quality = f'{new_track_dict["bit_depth"]}B - {new_track_dict["sampling_rate"]}k'
-
     return "flac", quality
 
 async def get_artist(data, type):
     if type == 'track':
         artists = []
-        text = data['performers']
+        text = data['album']['artists']
         # From https://github.com/yarrm80s/orpheusdl-qobuz/blob/71cf98db48a11e0b4b72c3368ad22f27c119b1dd/interface.py#L57
-        for credit in text.split(' - '):
+        """for credit in text.split(' - '):
             contributor_role = credit.split(', ')[1:]
             contributor_name = credit.split(', ')[0]
 
@@ -211,14 +181,22 @@ async def get_artist(data, type):
                     contributor_role.remove(contributor)
             if not contributor_role:
                 continue
+        return ', '.join([str(artist) for artist in artists])"""
+        for a in text:
+            artists.append(a['name'])
         return ', '.join([str(artist) for artist in artists])
+        """elif type == 'album':
+            return data['subtitle']"""
     elif type == 'album':
-        return data['subtitle']
-    elif type == 'tAlbum':
         # Getting album artist name from the track metadata itself
+        # For the album post
         album_artist = []
-        for artist in data['album']['artists']:
-            album_artist.append(artist['name'])
+        try:
+            for artist in data['album']['artists']:
+                album_artist.append(artist['name'])
+        except:
+            for artist in data['artists']:
+                album_artist.append(artist['name'])
         return ', '.join([str(name) for name in album_artist])
 
 def smart_discography_filter(
@@ -298,13 +276,3 @@ def create_and_return_dir(directory):
     fix = os.path.normpath(directory)
     os.makedirs(fix, exist_ok=True)
     return 
-
-async def human_quality(data):
-    if data == 5:
-        return lang.select.Q_320
-    elif data == 6:
-        return lang.select.Q_LOSELESS
-    elif data == 7:
-        return lang.select.Q_HIRES_7
-    else:
-        return lang.select.Q_HIRES_27

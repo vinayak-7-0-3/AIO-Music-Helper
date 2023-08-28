@@ -1,12 +1,12 @@
 import json
 
-from bot import LOGGER
 from config import Config
 from random import randrange
 from time import time, sleep
 from Cryptodome.Hash import MD5
 from Cryptodome.Cipher import ARC4
 
+from bot.logger import LOGGER
 from bot.helpers.database.postgres_impl import set_db
 from bot.helpers.utils.common import create_requests_session
 
@@ -71,20 +71,20 @@ class KkboxAPI:
 
         if resp['status'] not in (2, 3):
             if resp['status'] == -1:
-                LOGGER.warning('Incorrect Email Provided For KKBOX')
+                LOGGER.debug('KKBOX - Incorrect Email Provided')
                 exit(1)
             elif resp['status'] == -2:
-                LOGGER.warning('Incorrect Password Provided For KKBOX')
+                LOGGER.debug('KKBOX - Incorrect Password Provided')
                 exit(1)
             elif resp['status'] == -4:
-                LOGGER.warning('IP address is in unsupported region for KKBOX, use a VPN')
+                LOGGER.debug('KKBOX - IP address is in unsupported region, use a VPN')
                 set_db.set_variable("KKBOX_AUTH", False, False, None)
                 return
             elif resp['status'] == 1:
-                LOGGER.warning('KKBOX Account expired')
+                LOGGER.debug('KKBOX - Account expired')
                 set_db.set_variable("KKBOX_AUTH", False, False, None)
                 return
-            LOGGER.warning('Login failed')
+            LOGGER.debug('KKBOX - Login failed')
 
         self.apply_session(resp)
         self.set_quality()
@@ -94,7 +94,7 @@ class KkboxAPI:
         host = 'login' if not self.region_bypass else 'login-utapass'
         resp = self.api_call(host, 'check.php')
         if resp['status'] not in (2, 3, -4):
-            raise self.exception('Session renewal failed')
+            LOGGER.debug('KKBOX - Session renewal failed')
         self.apply_session(resp)
         self.set_quality()
 
@@ -114,7 +114,7 @@ class KkboxAPI:
 
         if quality:
             if not quality in self.available_qualities:
-                LOGGER.info('KKBOX quality chosen in settings is not available in your subcription now.')
+                LOGGER.debug('KKBOX - Quality chosen in settings is not available in your subcription now.')
                 set_db.set_variable("KKBOX_QUALITY", self.available_qualities[-1], False, None)
         else:
             set_db.set_variable("KKBOX_QUALITY", self.available_qualities[-1], False, None)
@@ -125,8 +125,7 @@ class KkboxAPI:
             'fields': 'artist_role,song_idx,album_photo_info,song_is_explicit,song_more_url,album_more_url,artist_more_url,genre_name,is_lyrics,audio_quality'
         })
         if resp['status']['type'] != 'OK':
-            LOGGER.info('Track not found')
-            return None
+            raise Exception('KKBOX - Track not found')
         return resp['data']['songs']
 
     def get_song_lyrics(self, id):
@@ -135,8 +134,7 @@ class KkboxAPI:
     def get_album(self, id):
         resp = self.api_call('ds', f'v1/album/{id}')
         if resp['status']['type'] != 'OK':
-            LOGGER.warning('Album not found')
-            return
+            raise Exception('KKBOX - Album not found')
         return resp['data']
 
     def get_album_more(self, raw_id):
@@ -147,7 +145,7 @@ class KkboxAPI:
     def get_artist(self, id):
         resp = self.api_call('ds', f'v3/artist/{id}')
         if resp['status']['type'] != 'OK':
-            raise self.exception('Artist not found')
+            raise Exception('KKBOX - Artist not found')
         return resp['data']
     
     def get_artist_albums(self, raw_id, limit, offset):
@@ -156,7 +154,7 @@ class KkboxAPI:
             'offset': offset,
         })
         if resp['status']['type'] != 'OK':
-            raise self.exception('Artist not found')
+            raise Exception('KKBOX - Artist not found')
         return resp['data']['album']
 
     def get_playlists(self, ids):
@@ -164,7 +162,7 @@ class KkboxAPI:
             'playlist_ids': ','.join(ids)
         })
         if resp['status']['type'] != 'OK':
-            raise self.exception('Playlist not found')
+            raise Exception('KKBOX - Playlist not found')
         return resp['data']['playlists']
 
     def search(self, query, types, limit):
@@ -201,7 +199,7 @@ class KkboxAPI:
                 # or if it's a bug on their slow-as-hell servers
                 sleep(0.5)
                 return self.get_ticket(song_id, play_mode)
-            LOGGER.warning("Couldn't get track URLs")
+            raise Exception("KKBOX - Couldn't get track URLs")
             
         return resp['uris']
 
@@ -219,7 +217,7 @@ class KkboxAPI:
             'osver': '11',
         })
         if resp['status'] != 1:
-            raise self.exception("Couldn't auth device")
+            raise Exception("KKBOX - Couldn't auth device")
 
     def kkdrm_dl(self, url, path):
         # skip first 1024 bytes of track file

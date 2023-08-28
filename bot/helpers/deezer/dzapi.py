@@ -6,7 +6,7 @@ from Cryptodome.Hash import MD5
 from requests.models import HTTPError
 from Cryptodome.Cipher import Blowfish, AES
 
-from bot import LOGGER
+from bot.logger import LOGGER
 from bot.helpers.database.postgres_impl import set_db
 from bot.helpers.utils.common import create_requests_session
 
@@ -97,7 +97,7 @@ class DeezerAPI:
         json = self.s.get('https://connect.deezer.com/oauth/user_auth.php', params=params).json()
 
         if 'error' in json:
-            LOGGER.warning('Error while getting access token, check your credentials')
+            LOGGER.debug('DEEZER : Error while getting access token, check your credentials')
 
         headers = {'Authorization': f'Bearer {json["access_token"]}'}
 
@@ -114,7 +114,7 @@ class DeezerAPI:
 
         if not user_data['USER']['USER_ID']:
             self.s.cookies.clear()
-            LOGGER.warning('Invalid arl')
+            LOGGER.debug('DEEZER : Invalid arl')
 
         set_db.set_variable("DEEZER_AUTH", True, False, None)
         return user_data

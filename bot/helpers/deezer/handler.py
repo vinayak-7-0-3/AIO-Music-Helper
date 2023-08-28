@@ -1,16 +1,17 @@
 import re
-import os
-import aigpy
 from requests import get
 from config import Config
 from urllib.parse import urlparse
-from pathvalidate import sanitize_filename
 
-from bot import LOGGER
+from bot.logger import LOGGER
 from bot.helpers.translations import lang
 from bot.helpers.deezer.dzapi import deezerapi
+from bot.helpers.utils.tg_utils import send_message
 from bot.helpers.database.postgres_impl import set_db
 from bot.helpers.utils.metadata import base_metadata, set_metadata
+from bot.helpers.utils.common import post_cover, get_file_name, check_music_exist, \
+        handle_upload
+
 
 class DeezerDL:
 #=================================
@@ -24,21 +25,21 @@ class DeezerDL:
         else:
             arl, _ = deezerapi.login_via_email(Config.DEEZER_EMAIL, Config.DEEZER_PASSWORD)
         await self.check_settings()
-        LOGGER.info('Loaded DEEZER Successfully')
+        LOGGER.debug('Loaded DEEZER Successfully')
 
 #=================================
 # DOWNLOAD
 #=================================
-    async def start(self, url, bot, update, r_id, u_name):
+    async def start(self, url, user):
         type, id = self.url_parse(url)
         if type == 'track':
-            await self.getTrack(id, bot, update, r_id, u_name)
+            await self.getTrack(id, user)
         if type == 'album':
-            await self.getAlbum(id, bot, update, r_id, u_name)
+            await self.getAlbum(id, user)
         if type == 'artist':
-            await self.getArtist(id, bot, update, r_id, u_name)
+            await self.getArtist(id, user)
 
-    async def getTrack(self, track_id, bot, update, r_id, u_name, isalbum=False):
+    async def getTrack(self, track_id, user, type='track'):
         is_user_upped = int(track_id) < 0
         if not is_user_upped:
             track_data = deezerapi.get_track(track_id)['DATA']
@@ -52,69 +53,52 @@ class DeezerDL:
 
         err = await self.check_country(track_data)
         if err:
-            return await bot.send_message(
-                chat_id=update.chat.id,
-                text=err,
-                reply_to_message_id=r_id
-            )
-
-        metadata = await self.get_metadata(track_data, q_tier, is_spatial)
-        await self.dlTrack(track_data, q_tier, metadata, bot, update, r_id, u_name, isalbum, is_spatial)
+            await LOGGER.error(err, user)
+            await send_message(user, err)
+            return
         
-    async def getAlbum(self, album_id, bot, update, r_id, u_name):
+        metadata = await self.get_metadata(track_data, q_tier, is_spatial)
+        metadata['item_id'] = track_id
+        dupe = await check_music_exist(metadata, user, t_source=type)
+        if dupe: return
+
+        await self.dlTrack(track_data, q_tier, metadata, user, type, is_spatial)
+        
+    async def getAlbum(self, album_id, user, type='album'):
         data = deezerapi.get_album(album_id)
         album_data = data['DATA']
         track_data = data['SONGS']['data']
         q_tier, is_spatial, msg = await self.check_quality(track_data, True)
         a_meta = await self.get_metadata(album_data, q_tier, is_spatial, 'album', track_data)
-        
-        await self.post_details(a_meta, bot, update, r_id, u_name)
+        a_meta['item_id'] = album_id
+        dupe = await check_music_exist(a_meta, user, 'album')
+        if dupe: return
+        await post_cover(a_meta, user)
         for track in track_data:
-            await self.getTrack(track['SNG_ID'], bot, update, r_id, u_name, True)
+            await self.getTrack(track['SNG_ID'], user, 'album')
 
-    async def getArtist(self, artist_id, bot, update, r_id, u_name):
+    async def getArtist(self, artist_id, user):
         #artist = deezerapi.get_artist_name(artist_id)
         albums = deezerapi.get_artist_album_ids(artist_id, 0, -1, False)
         for album_id in albums:
-            await self.getAlbum(album_id, bot, update, r_id, u_name)
+            await self.getAlbum(album_id, user, 'artist')
 
-    async def dlTrack(self, t_data, q_tier, metadata, bot, update, r_id, u_name, isalbum, is_spatial):
+    async def dlTrack(self, t_data, q_tier, metadata, user, type, is_spatial):
         if q_tier in ('MP3_320', 'FLAC'):
             url = deezerapi.get_track_url(t_data['SNG_ID'], t_data['TRACK_TOKEN'], t_data['TRACK_TOKEN_EXPIRE'], q_tier)
         else:
             url = deezerapi.get_legacy_track_url(t_data['MD5_ORIGIN'], q_tier, t_data['SNG_ID'], t_data['MEDIA_VERSION'])
 
-        filename = f"{metadata['title']} - {metadata['artist']}.{metadata['extension']}"
-        filename = sanitize_filename(filename)
-        temp_path = f"{Config.DOWNLOAD_BASE_DIR}/deezer/{r_id}/"
-        if not os.path.isdir(temp_path):
-            os.makedirs(temp_path)
-        filepath = temp_path + f"{filename}"
-
+        filepath, _, _ = await get_file_name(user, metadata, type)
         await deezerapi.dl_track(t_data['SNG_ID'], url, filepath)
 
         # I literally dont how know to deal with spatial audio
         if not is_spatial:
             await set_metadata(filepath, metadata)
 
-        if not isalbum and Config.MENTION_USERS == "True":
-            text = lang.select.USER_MENTION_TRACK.format(u_name)
-        else:
-            text = None
-
-        thumb_path = filepath + f'_thumbnail.jpg'
-        aigpy.net.downloadFile(metadata['thumbnail'], thumb_path)
-
-        await bot.send_audio(
-            chat_id=update.chat.id,
-            audio=filepath,
-            caption=text,
-            duration=int(metadata['duration']),
-            performer=metadata['artist'],
-            title=metadata['title'],
-            thumb=thumb_path,
-            reply_to_message_id=r_id
-        )
+        #metadata['thumbnail'] = filepath + f'_thumbnail.jpg'
+        await handle_upload(user, filepath, metadata)
+        #await send_message(user, filepath, 'audio', metadata)
 
 #=================================
 # HELPERS
@@ -125,12 +109,12 @@ class DeezerDL:
         if url.hostname == 'deezer.page.link':
             r = get('https://deezer.page.link' + url.path, allow_redirects=False)
             if r.status_code != 302:
-                LOGGER.warning(f'Invalid URL: {link}')
+                raise Exception(f'DEEZER : Invalid URL: {link}')
             url = urlparse(r.headers['Location'])
 
         path_match = re.match(r'^\/(?:[a-z]{2}\/)?(track|album|artist|playlist)\/(\d+)\/?$', url.path)
         if not path_match:
-            LOGGER.warning(f'Invalid URL: {link}')
+            raise Exception(f'DEEZER : Invalid URL: {link}')
 
         media_type = path_match.group(1)
         media_id = path_match.group(2)
@@ -160,7 +144,7 @@ class DeezerDL:
         metadata = base_metadata.copy()
         if type == 'track':
             metadata['title'] = data['SNG_TITLE']
-            metadata['album'] = data['ALB_TITLE']
+            #metadata['album'] = data['ALB_TITLE']
             metadata['artist'] = await self.get_artists_from_meta(data)
             metadata['albumartist'] = data['ART_NAME']
             metadata['tracknumber'] = data.get('TRACK_NUMBER')
@@ -176,14 +160,17 @@ class DeezerDL:
         elif type == 'album':
             metadata['title'] = data['ALB_TITLE']
             metadata['artist'] = data['ART_NAME']
+            metadata['albumartist'] = data['ART_NAME']
             metadata['date'] = data.get('ORIGINAL_RELEASE_DATE') or data['PHYSICAL_RELEASE_DATE']
             try:
                 metadata['totaltracks'] = int(t_data[-1]['TRACK_NUMBER'])
             except:
                 pass
-            metadata['albumart'] = await self.get_image_url(data['ALB_PICTURE'], 'art')
-            _, metadata['quality'] = await self.parse_quality(q_tier, is_spatial)
-            metadata['provider'] = 'deezer'
+
+        metadata['album'] = data['ALB_TITLE']
+        metadata['albumart'] = await self.get_image_url(data['ALB_PICTURE'], 'art')
+        _, metadata['quality'] = await self.parse_quality(q_tier, is_spatial)
+        metadata['provider'] = 'deezer'
         return metadata
 
     async def get_artists_from_meta(self, data):
@@ -202,28 +189,6 @@ class DeezerDL:
         filename = f'{res}x0-000000-100-0-0.jpg'
 
         return f'https://cdns-images.dzcdn.net/images/cover/{md5}/{filename}'
-        
-    async def post_details(self, metadata, bot, update, r_id, u_name):
-        url = metadata['albumart']
-
-        post_details = lang.select.DEEZER_ALBUM_DETAILS.format(
-            metadata['title'],
-            metadata['artist'],
-            metadata['date'],
-            metadata['totaltracks']
-        )
-        quality = metadata['quality']
-        if quality != '':
-            post_details = post_details + lang.select.QUALITY_ADDON.format(quality)
-        if Config.MENTION_USERS == "True":
-            post_details = post_details + lang.select.USER_MENTION_ALBUM.format(u_name)
-
-        await bot.send_photo(
-            chat_id=update.chat.id,
-            photo=url,
-            caption=post_details,
-            reply_to_message_id=r_id
-        )
 
     async def check_settings(self):
         s_quality, _ = set_db.get_variable("DEEZER_QUALITY")
@@ -242,7 +207,7 @@ class DeezerDL:
             u_qualities = deezerapi.available_formats
             # Check if selected quality in settings available in user account
             if not s_quality in u_qualities:
-                LOGGER.warning(f"DEEZER - Quality selected in settings - {s_quality} not available in your account.")
+                LOGGER.debug(f"DEEZER - Quality selected in settings - {s_quality} not available in your account.")
                 # Fallback to highest available
                 set_db.set_variable("DEEZER_QUALITY", str(u_qualities[-1]), False, None)
                 deezerapi.set_quality = u_qualities[-1]
