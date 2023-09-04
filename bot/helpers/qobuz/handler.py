@@ -1,8 +1,7 @@
 from bot.helpers.qobuz.utils import *
 from bot.helpers.qobuz.qopy import qobuz_api
 from bot.helpers.utils.tg_utils import send_message
-from bot.helpers.utils.common import post_cover, check_music_exist
-from bot.helpers.database.postgres_impl import set_db
+from bot.helpers.utils.common import post_cover, check_music_exist, botsetting
 
 
 class QobuzDL:
@@ -15,10 +14,10 @@ class QobuzDL:
     async def login(self, auth):
         try:
             qobuz_api.login(auth)
-            set_db.set_variable("QOBUZ_AUTH", True, False, None)
+            botsetting.qobuz_auth = True
         except Exception as e:
             await LOGGER.error(e)
-            set_db.set_variable("QOBUZ_AUTH", False, False, None)
+            botsetting.qobuz_auth = False
 
     async def start(self, url, user):
         items, item_id, type_dict, content = await check_type(url)

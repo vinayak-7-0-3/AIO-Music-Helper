@@ -9,7 +9,7 @@ from bot.helpers.spotify.handler import spotify_dl
 from bot.helpers.tidal_func.events import loadTidal
 from bot.helpers.database.postgres_impl import set_db
 from bot.helpers.tidal_func.events import checkLoginTidal
-
+from bot.helpers.utils.common import botsetting
 
 async def checkLogins(provider):
     # return Error and Error Message
@@ -20,23 +20,19 @@ async def checkLogins(provider):
         else:
             return True, msg
     elif provider == "qobuz":
-        auth, _ = set_db.get_variable("QOBUZ_AUTH")
-        if not auth:
+        if not botsetting.qobuz_auth:
             return True, lang.QOBUZ_NOT_AUTH
         return False, None
     elif provider == "deezer":
-        auth, _ = set_db.get_variable("DEEZER_AUTH")
-        if not auth:
+        if not botsetting.deezer_auth:
             return True, lang.DEEZER_NOT_AUTH
         return False, None
     elif provider == "kkbox":
-        auth, _ = set_db.get_variable("KKBOX_AUTH")
-        if not auth:
+        if not botsetting.kkbox_auth:
             return True, lang.KKBOX_NOT_AUTH
         return False, None
     elif provider == "spotify":
-        auth, _ = set_db.get_variable("SPOTIFY_AUTH")
-        if not auth:
+        if not botsetting.spotify_auth:
             return True, lang.SPOTIFY_NOT_AUTH
         return False, None
     else:
@@ -53,14 +49,14 @@ async def loadConfigs():
         await kkbox.login()
         LOGGER.debug('Loaded KKBOX')
     else:
-        set_db.set_variable("KKBOX_AUTH", False, False, None)
+        botsetting.kkbox_auth = False
     # QOBUZ
     if not "" in {Config.QOBUZ_EMAIL, Config.QOBUZ_PASSWORD}:
         await qobuz.login('email')
     elif not "" in {Config.QOBUZ_USER, Config.QOBUZ_TOKEN}:
         await qobuz.login('token')
     else:
-        set_db.set_variable("QOBUZ_AUTH", False, False, None)
+        botsetting.qobuz_auth = False
     # DEEZER
     if not "" in {Config.DEEZER_EMAIL, Config.DEEZER_PASSWORD}:
         if Config.DEEZER_BF_SECRET == "":
@@ -73,19 +69,22 @@ async def loadConfigs():
     elif Config.DEEZER_ARL != "":
         await deezerdl.login(True)
     else:
-        set_db.set_variable("DEEZER_AUTH", False, False, None)
+        botsetting.deezer_auth = False
     # SPOTIFY
     if not "" in {Config.SPOTIFY_EMAIL, Config.SPOTIFY_PASS}:
-        await spotify_dl.login()
-        set_db.set_variable("SPOTIFY_AUTH", True, False, None)
+        try:
+            await spotify_dl.login()
+            botsetting.spotify_auth = True
+        except Exception as e:
+            LOGGER.debug('SPOTIFY : ' + e)
+            botsetting.spotify_auth = False
     else:
-        set_db.set_variable("SPOTIFY_AUTH", False, False, None)
+        botsetting.spotify_auth = False
 
 async def check_link(link):
     tidal = ["https://tidal.com", "https://listen.tidal.com", "tidal.com", "listen.tidal.com"]
     deezer = ["https://deezer.page.link", "https://deezer.com", "deezer.com", "https://www.deezer.com"]
     qobuz = ["https://play.qobuz.com", "https://open.qobuz.com", "https://www.qobuz.com"]
-    sc = []
     kkbox = ["https://www.kkbox.com"]
     spotify = ["https://open.spotify.com"]
     if link.startswith(tuple(tidal)):
@@ -94,8 +93,6 @@ async def check_link(link):
         return "deezer"
     elif link.startswith(tuple(qobuz)):
         return "qobuz"
-    elif link.startswith(tuple(sc)):
-        return "sc"
     elif link.startswith(tuple(kkbox)):
         return "kkbox"
     elif link.startswith(tuple(spotify)):

@@ -8,7 +8,7 @@ from Cryptodome.Cipher import ARC4
 
 from bot.logger import LOGGER
 from bot.helpers.database.postgres_impl import set_db
-from bot.helpers.utils.common import create_requests_session
+from bot.helpers.utils.common import create_requests_session, botsetting
 
 class KkboxAPI:
     def __init__(self, kc1_key):
@@ -79,16 +79,19 @@ class KkboxAPI:
             elif resp['status'] == -4:
                 LOGGER.debug('KKBOX - IP address is in unsupported region, use a VPN')
                 set_db.set_variable("KKBOX_AUTH", False, False, None)
+                botsetting.kkbox_auth = False
                 return
             elif resp['status'] == 1:
                 LOGGER.debug('KKBOX - Account expired')
                 set_db.set_variable("KKBOX_AUTH", False, False, None)
+                botsetting.kkbox_auth = False
                 return
             LOGGER.debug('KKBOX - Login failed')
 
         self.apply_session(resp)
         self.set_quality()
         set_db.set_variable("KKBOX_AUTH", True, False, None)
+        botsetting.kkbox_auth = True
 
     def renew_session(self):
         host = 'login' if not self.region_bypass else 'login-utapass'

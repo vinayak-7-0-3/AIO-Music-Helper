@@ -6,24 +6,15 @@ import base64
 from config import Config
 from bot.helpers.tidal_func.enums import *
 from bot.helpers.database.postgres_impl import set_db
+from bot.helpers.utils.common import botsetting
 
 
 class Settings(aigpy.model.ModelBase):
-    checkExist = False
     includeEP = True
-    saveCovers = True
-    language = 0
-    lyricFile = False
     apiKeyIndex = 4
-    showProgress = False
-    showTrackInfo = True
-    saveAlbumInfo = False
     downloadPath = Config.DOWNLOAD_BASE_DIR + "/tidal"
     audioQuality = AudioQuality.Master
     usePlaylistFolder = True
-    albumFolderFormat = R"{ArtistName}/{Flag} {AlbumTitle} [{AlbumID}] [{AlbumYear}]"
-    trackFileFormat = R"{TrackNumber} - {ArtistName} - {TrackTitle}{ExplicitFlag}"
-
 
     def getAudioQuality(self, value):
         for item in AudioQuality:
@@ -69,8 +60,10 @@ class TokenSettings(aigpy.model.ModelBase):
                 data = json.loads(self.__decode__(txt))
                 aigpy.model.dictToModel(data, self)
                 set_db.set_variable("TIDAL_AUTH_DONE", True, False, None)
+                botsetting.tidal_auth = True
         except TypeError:
             set_db.set_variable("TIDAL_AUTH_DONE", False, False, None)
+            botsetting.tidal_auth = False
 
     def save(self):
         data = aigpy.model.modelToDict(self)
@@ -78,6 +71,7 @@ class TokenSettings(aigpy.model.ModelBase):
         set_db.set_variable("TIDAL_AUTH_TOKEN", 0, True, self.__encode__(txt))
         aigpy.file.write(self._path_, self.__encode__(txt), 'wb')
         set_db.set_variable("TIDAL_AUTH_DONE", True, False, None)
+        botsetting.tidal_auth = True
 
 
 # Singleton

@@ -19,6 +19,7 @@ from bot.helpers.utils.tg_utils import check_id
 from bot.helpers.utils.providers import checkLogins
 from bot.helpers.utils.tg_utils import send_message, edit_message,fetch_user_details
 from bot.helpers.tidal_func.events import loginByWeb, getapiInfoTidal, checkAPITidal
+from bot.helpers.utils.common import botsetting
 
 
 # MAIN COMMAND
@@ -41,8 +42,7 @@ async def tidal_panel_cb(bot, update):
         user = await fetch_user_details(update.message)
         quality, _ = set_db.get_variable("TIDAL_QUALITY")
         api_index = TIDAL_SETTINGS.apiKeyIndex
-        db_auth, _ = set_db.get_variable("TIDAL_AUTH_DONE")
-        text = lang.TIDAL_SETTINGS_PANEL.format(quality, api_index, db_auth)
+        text = lang.TIDAL_SETTINGS_PANEL.format(quality, api_index, botsetting.tidal_auth)
         await edit_message(user, update.message.id, text, tidal_menu_set())
 
 # KKBOX
@@ -50,13 +50,13 @@ async def tidal_panel_cb(bot, update):
 async def kkbox_panel_cb(bot, update):
     if await check_id(update.from_user.id, restricted=True):
         quality, _ = set_db.get_variable("KKBOX_QUALITY")
-        auth, _ = set_db.get_variable("KKBOX_AUTH")
+        quality = quality if quality else ''
         await bot.edit_message_text(
             chat_id=update.message.chat.id,
             message_id=update.message.id,
             text=lang.KKBOX_SETTINGS_PANEL.format(
                 quality.upper(),
-                auth
+                botsetting.kkbox_auth
             ),
             reply_markup=kkbox_menu_set()
         )
@@ -67,13 +67,12 @@ async def qobuz_panel_cb(bot, update):
     if await check_id(update.from_user.id, restricted=True):
         quality, _ = set_db.get_variable("QOBUZ_QUALITY")
         quality = await qobuz.human_quality(int(quality))
-        auth, _ = set_db.get_variable("QOBUZ_AUTH")
         await bot.edit_message_text(
             chat_id=update.message.chat.id,
             message_id=update.message.id,
             text=lang.QOBUZ_SETTINGS_PANEL.format(
                 quality,
-                auth
+                botsetting.qobuz_auth
             ),
             reply_markup=qobuz_menu_set()
         )
@@ -85,14 +84,13 @@ async def deezer_panel_cb(bot, update):
         quality, _ = set_db.get_variable("DEEZER_QUALITY")
         spatial, _ = set_db.get_variable("DEEZER_SPATIAL")
         quality = await deezerdl.parse_quality(quality, False, True)
-        auth, _ = set_db.get_variable("DEEZER_AUTH")
         auth_by = 'By ARL' if Config.DEEZER_ARL != "" else 'By Creds'
         await bot.edit_message_text(
             chat_id=update.message.chat.id,
             message_id=update.message.id,
             text=lang.DEEZER_SETTINGS_PANEL.format(
                 quality,
-                auth,
+                botsetting.qobuz_auth,
                 auth_by,
                 spatial
             ),
@@ -106,14 +104,13 @@ async def spotify_panel_cb(bot, update):
         quality, _ = set_db.get_variable("SPOTIFY_QUALITY")
         reencode, _ = set_db.get_variable("SPOTIFY_REENCODE")
         format, _ = set_db.get_variable("SPOTIFY_FORMAT")
-        auth, _ = set_db.get_variable("SPOTIFY_AUTH")
         try:
             await bot.edit_message_text(
                 chat_id=update.message.chat.id,
                 message_id=update.message.id,
                 text=lang.SPOTIFY_SETTINGS_PANEL.format(
                     quality,
-                    auth,
+                    botsetting.spotify_auth,
                     reencode,
                     format.upper()
                 ),
@@ -284,7 +281,6 @@ async def rmauth_cb(bot, update):
 # FUNCTION TO ADD AUTH FOR TIDAL
 @Client.on_callback_query(filters.regex(pattern=r"^ADA"))
 async def add_auth_cb(bot, update):
-    print('hi')
     if await check_id(update.from_user.id, restricted=True):
         user = await fetch_user_details(update.message)
         provider = update.data.split("_")[1]

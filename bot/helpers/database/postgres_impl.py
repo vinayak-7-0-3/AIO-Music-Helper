@@ -17,13 +17,10 @@ TIDAL_API_KEY_INDEX - Index of API Key Selected (INT)
 TIDAL_QUALITY - Music quality (Normal/High/HiFi/Master)
 
 KKBOX_QUALITY - Quality Of KKBOX Tracks (128k, 192k, 320k, hifi, hires)
-KKBOX_AUTH - Status of KKBOX Authentication (True/False)
 
-QOBUZ_AUTH - Status of QOBUZ Authentication (True/False)
 QOBUZ_QUALITY - Quality of QOBUZ Tracks (5 - 320k, 6 - Loseless, 7 - HiRes, 27 - HiRes>96)
 
 -x- DEEZER_ARL - ARL of Deezer Client (Deprecated)
-DEEZER_AUTH - Status of Deezer Authentication (True/False)
 DEEZER_QUALITY - Quality Of DEEZER Tracks ()
 DEEZER_SPATIAL - Prefer 360RA in FLAC (True/False)
 DEEZER_MHM1 - Prefer MHM1 codec for Spatial
@@ -31,7 +28,6 @@ DEEZER_MHM1 - Prefer MHM1 codec for Spatial
 SPOTIFY_QUALITY  - Quality Of Spotify Tracks (HIGH/VERYHIGH)
 SPOTIFY_REENCODE - If to re-encode the downloaded tracks before uploading (True/False)
 SPOTIFY_FORMAT - Format of Tracks downloaded (mp3/ogg)
-SPOTIFY_AUTH - Status of Spotify Authentication (True/False)
 
 
 AUTH_CHATS - Chats where bot is allowed

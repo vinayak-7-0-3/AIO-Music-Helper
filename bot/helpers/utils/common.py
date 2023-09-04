@@ -16,6 +16,13 @@ from bot.helpers.utils.tg_utils import send_message, copy_message, \
         fetch_tg_link
 
 
+class BotLocalSettings():
+    spotify_auth = False
+    tidal_auth = False
+    qobuz_auth = False
+    deezer_auth = False
+    kkbox_auth = False
+
 def create_requests_session():
     session_ = requests.Session()
     retries = Retry(total=10, backoff_factor=0.4, status_forcelist=[429, 500, 502, 503, 504])
@@ -130,3 +137,5 @@ async def fetch_dupe_music(track_id, user):
             count += 1
         return text, links
     else: return None, None
+
+botsetting = BotLocalSettings()

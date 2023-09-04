@@ -5,6 +5,7 @@ from librespot.core import Session
 from librespot.audio.decoders import AudioQuality
 
 from bot.helpers.translations import lang
+from bot.logger import LOGGER
 
 class SpotifyAPI:
     def __init__(self):
@@ -37,6 +38,7 @@ class SpotifyAPI:
                 return None, lang.ERR_SPOT_NOT_AVAIL
             return info['tracks'][0], None
         except:
+            LOGGER.debug('SPOTIFY : Error getting Track Details')
             pass
 
     async def get_album_name(self, album_id):

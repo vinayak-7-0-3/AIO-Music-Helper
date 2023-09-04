@@ -8,7 +8,7 @@ from bot.helpers.translations import lang
 from bot.helpers.utils.tg_utils import edit_message
 from bot.helpers.database.postgres_impl import set_db
 from bot.helpers.buttons.settings_buttons import common_auth_set
-from bot.helpers.utils.common import post_cover, check_music_exist
+from bot.helpers.utils.common import post_cover, check_music_exist, botsetting
 
 from bot.helpers.tidal_func.tidal import *
 from bot.helpers.tidal_func.enums import *
@@ -99,7 +99,7 @@ def loginByConfig():
         return False, None
 
 async def checkLoginTidal():
-    db_auth, _ = set_db.get_variable("TIDAL_AUTH_DONE")
+    db_auth = botsetting.tidal_auth
     if not db_auth:
         return False, lang.TIDAL_NOT_AUTH
     auth, msg = loginByConfig()

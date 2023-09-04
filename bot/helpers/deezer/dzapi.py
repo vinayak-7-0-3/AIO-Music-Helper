@@ -7,8 +7,7 @@ from requests.models import HTTPError
 from Cryptodome.Cipher import Blowfish, AES
 
 from bot.logger import LOGGER
-from bot.helpers.database.postgres_impl import set_db
-from bot.helpers.utils.common import create_requests_session
+from bot.helpers.utils.common import create_requests_session, botsetting
 
 class APIError(Exception):
     def __init__(self, type, msg, payload):
@@ -98,6 +97,7 @@ class DeezerAPI:
 
         if 'error' in json:
             LOGGER.debug('DEEZER : Error while getting access token, check your credentials')
+            botsetting.deezer_auth = False
 
         headers = {'Authorization': f'Bearer {json["access_token"]}'}
 
@@ -115,8 +115,11 @@ class DeezerAPI:
         if not user_data['USER']['USER_ID']:
             self.s.cookies.clear()
             LOGGER.debug('DEEZER : Invalid arl')
+            botsetting.deezer_auth = False
+            return
 
-        set_db.set_variable("DEEZER_AUTH", True, False, None)
+        botsetting.deezer_auth = True
+        LOGGER.debug('Loaded DEEZER Successfully')
         return user_data
 
     def get_track(self, id):

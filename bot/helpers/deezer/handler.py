@@ -25,7 +25,6 @@ class DeezerDL:
         else:
             arl, _ = deezerapi.login_via_email(Config.DEEZER_EMAIL, Config.DEEZER_PASSWORD)
         await self.check_settings()
-        LOGGER.debug('Loaded DEEZER Successfully')
 
 #=================================
 # DOWNLOAD
