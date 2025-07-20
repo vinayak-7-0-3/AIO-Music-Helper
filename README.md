@@ -1,9 +1,9 @@
+# ⚠️THIS REPO IS NOT MAINTAINED ANYMORE⚠️
+# ⚠️USE THE NEW REPO [Project-Siesta](https://github.com/vinayak-7-0-3/Project-Siesta) FOR STABLE AND FASTER DOWNLOADS⚠️
+
 # AIO-Music-Helper-Bot
 ## Telegram bot to manage all your music needs.
 <br>
-
-### ⚠️ WORK IN PROGRESS ⚠️
-### Bot is almost in a working state !
 <br>
 
 # CREDITS
